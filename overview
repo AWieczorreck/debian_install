@@ -1,0 +1,190 @@
+build-essential
+cmake
+curl
+dbus-x11
+gettext
+git
+gnupg
+gnupg-agent
+libpam0g-dev
+libx11-dev
+libxcb-xkb-dev
+libxft-dev
+libxinerama-dev
+lynx
+man-db
+pass
+pcscd
+pinentry-gtk2
+python3-pynvim
+ripgrep
+scdaemon
+sudo
+unzip
+vim
+wget
+x11-utils
+x11-xserver-utils
+xclip
+xinit
+xsel
+xserver-xorg
+yubikey-manager
+zsh
+
+
+$ gpg
+$ gpg --card-edit
+    > fetch
+    > quit
+$ gpg --edit-key <EMAIL>
+    > trust
+    > quit
+$ vim ~/.gnupg/gpg-agent.conf
+
+    enable-ssh-support
+    ttyname $GPG_TTY
+    default-cache-ttl 60
+    max-cache-ttl 120
+    pinentry-program /usr/bin/pinentry-gtk-2
+
+$ vim ~/.gnupg/gpg.conf
+
+    charset utf-8
+    fixed-list-mode
+    no-comments
+    no-emit-version
+    no-greeting
+    keyid-format 0xlong
+    list-options show-uid-validity
+    verify-options show-uid-validity
+    with-fingerprint
+    require-cross-certification
+    no-symkey-cache
+    use-agent
+
+$ vim ~/.gnupg/scdaemon.conf
+
+    disable-ccid
+
+$ vim .gitconfig
+
+    [user]
+        email = <EMAIL>
+        name = <NAME>
+        signingkey = <SIGNINGKEY>
+    [init]
+        defaultBranch = main
+
+$ vim /etc/sudoers
+
+    %<USER> ALL=(ALL) NOPASSWD:/usr/bin/apt-get update
+
+$ mkdir ~/tools
+$ cd ~/tools
+    $ wget https://ziglang.org/builds/zig-linux-x86_64-0.13.0.tar.xz
+    $ tar xf zig-linux-x86_64-0.13.0.tar.xz
+    $ sudo mv <ZIGLANG>/zig /usr/bin/zig
+    $ sudo mv <ZIGLANG>/lib/ /usr/lib/zig
+
+$ mkdir ~/repos
+$ cd ~/repos
+    $ git clone https://github.com/fairyglade/ly
+    $ cd ly
+        $ sudo zig build installsystemd
+        $ sudo systemd enable ly.service
+        $ sudo /sbin/init 6
+
+$ cd ~/repos
+    $ git clone https://git.suckless.org/dwm
+    $ git clone https://git.suckless.org/st
+    $ git clone https://git.suckless.org/dmenu
+    $ cd st
+        $ vim config.h
+
+            clean:
+                rm -f st $(OBJ) st-$(VERSION).tar.gz config.h
+
+        $ sudo make clean install
+        $ cd ..
+    $ cd dwm
+        $ vim Makefile
+
+            clean:
+                rm -f dwm ${OBJ} dwm-${VERSION}.tar.gz config.h
+
+        $ sudo make clean install
+        $ cd ..
+    $ cd dmenu
+        $ sudo make clean install
+
+$ su
+    $ mkdir /usr/share/xsessions/
+    $ vim /usr/share/xsessions/dwm.desktop
+
+        [Desktop Entry]
+        Encoding=UTF-8
+        Name=dwm
+        Comment=dynamic window manager
+        Exec=/etc/X11/Xsession
+        Icon=dwm
+        Type=XSession
+    $ exit
+$ touch ~/.xsession
+$ vim ~/.xsession
+
+    exec /usr/local/bin/dwm
+
+$ sudo dpkg-reconfigure locales
+
+$ cd ~/repos
+    $ git clone https://github.com/neovim/neovim
+    $ cd neovim
+    $ make CMAKE_BUILD_TYPE=Release
+    $ sudo apt purge neovim
+    $ sudo apt autoremove
+    $ sudo make install
+
+$ git clone --depth=1 https://github.com/mattmc3/antidote.git ${ZDOTDIR:-$HOME}/.antidote$ touch ~/.zsh_plugins.txt
+$ vim ~/.zsh_plugins.txt
+
+    zsh-users/zsh-syntax-highlighting
+    zsh-users/zsh-autosuggestions
+    zsh-users/zsh-history-substring-search
+    romkatv/powerlevel10k
+
+$ vim ~/.zshrc
+
+    setopt EXTENDED_HISTORY
+    setopt HIST_EXPIRE_DUPS_FIRST
+    setopt HIST_IGNORE_DUPS
+    setopt HIST_IGNORE_ALL_DUPS
+    setopt HIST_IGNORE_SPACE
+    setopt HIST_FIND_NO_DUPS
+    setopt HIST_SAVE_NO_DUPS
+    setopt HIST_BEEP
+
+    HISTFILE=~/.zsh_history
+    HISTSIZE=1000000
+    SAVEHIST=1000000
+
+    bindkey "\e[1;5C" forward-word
+    bindkey "\e[1;5D" backward-word
+    bindkey "\e[5C" forward-word
+    bindkey "\e[5D" backward-word
+    bindkey "^[[1;3C" forward-word
+    bindkey "^[[1;3D" backward-word
+
+    export PASSWORD_STORE_GPG_OPTS='--no-throw-keyids'
+
+
+
+
+
+
+
+
+
+
+
+
