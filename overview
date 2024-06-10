@@ -254,3 +254,11 @@ $ su
 
         feh --bg-fill -z <PATH_TO_WALLPAPER_FOLDER>
 
+
+$ su
+    $ touch /etc/X11/Xsession.d/999inhibit_sleep
+    $ vim /etc/X11/Xsession.d/999inhibit_sleep
+
+        #!/bin/sh
+
+        xset dpms 0 0 0 && xset s noblank && xset s off
