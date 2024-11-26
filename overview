@@ -146,7 +146,7 @@ $ cd ~/repos
     $ sudo apt autoremove
     $ sudo make install
 
-$ git clone --depth=1 https://github.com/mattmc3/antidote.git ${ZDOTDIR:-$HOME}/.antidote$ touch ~/.zsh_plugins.txt
+$ git clone --depth=1 https://github.com/mattmc3/antidote.git ${ZDOTDIR:-$HOME}/.antidote
 $ vim ~/.zsh_plugins.txt
 
     zsh-users/zsh-syntax-highlighting
