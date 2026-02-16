@@ -1,183 +1,109 @@
-build-essential
-cmake
-curl
-dbus-x11
-feh
-gettext
-git
-gnupg
-gnupg-agent
-libpam0g-dev
-libx11-dev
-libxcb-xkb-dev
-libxft-dev
-libxinerama-dev
-lynx
-man-db
-pass
-pcscd
-pinentry-gtk2
-python3-pynvim
-ripgrep
-scdaemon
-sudo
-unzip
-vim
-wget
-x11-utils
-x11-xserver-utils
-xclip
-xinit
-xsel
-xserver-xorg
-yubikey-manager
-zsh
+1)      Install sudo:
+        $ su -
+        $ apt install sudo
 
+2)      Add username to group 'sudo':
+        $ usermod -a -G sudo <username>
 
-$ gpg
-$ gpg --card-edit
-    > fetch
-    > quit
-$ gpg --edit-key <EMAIL>
-    > trust
-    > quit
-$ vim ~/.gnupg/gpg-agent.conf
+2.1)    $ exit
 
-    enable-ssh-support
-    ttyname $GPG_TTY
-    default-cache-ttl 60
-    max-cache-ttl 120
-    pinentry-program /usr/bin/pinentry-gtk-2
+3)      Install packages:
+        $ sudo apt install  \
+            build-essential \
+            git             \
+            libx11-dev      \
+            libxft-dev      \
+            libxinerama-dev
 
-$ vim ~/.gnupg/gpg.conf
+4)      Install dwm:
+        $ mkdir -p ~/repos && cd ~/repos
+        $ git clone https://git.suckless.org/dwm
+        $ cd dwm && sudo make install
 
-    charset utf-8
-    fixed-list-mode
-    no-comments
-    no-emit-version
-    no-greeting
-    keyid-format 0xlong
-    list-options show-uid-validity
-    verify-options show-uid-validity
-    with-fingerprint
-    require-cross-certification
-    no-symkey-cache
-    use-agent
+5)      Install st:
+        $ mkdir -p ~/repos && cd ~/repos
+        $ git clone https://git.suckless.org/st
+        $ cd st && sudo make install
 
-$ vim ~/.gnupg/scdaemon.conf
+6)      Install dmenu:
+        $ mkdir -p ~/repos && cd ~/repos
+        $ git clone https://git.suckless.org/dmenu
+        $ cd dmenu && sudo make install
 
-    disable-ccid
+7)      Install slstatus:
+        $ mkdir -p ~/repos && cd ~/repos
+        $ git clone https://git.suckless.org/slstatus
+        $ cd slstatus && sudo make install
 
-$ vim .gitconfig
+7)      Install X:
+        $ sudo apt install xserver-xorg x11-xserver-utils x11-utils xinit
 
-    [user]
-        email = <EMAIL>
-        name = <NAME>
-        signingkey = <SIGNINGKEY>
-    [init]
-        defaultBranch = main
+7.1)    Start dwm with startx:
+        $ printf "%s\n" "slstatus &" "exec dwm 2> ~/.dwm.log" > ~/.xinitrc
 
-$ vim /etc/sudoers
+8)      Install useful packages:
+        $ sudo apt install curl wget vim unzip pipewire firmware-linux acpi xfonts-base xfonts-75dpi xfonts-100dpi aptitude upower
 
-    %<USER> ALL=(ALL) NOPASSWD:/usr/bin/apt-get update
+8.1)    Install packages for vim plugins and config:
+        $ sudo apt install npm bat ripgrep fzf fd-find
 
-$ mkdir ~/tools
-$ cd ~/tools
-    $ wget https://ziglang.org/builds/zig-linux-x86_64-0.13.0.tar.xz
-    $ tar xf zig-linux-x86_64-0.13.0.tar.xz
-    $ sudo mv <ZIGLANG>/zig /usr/bin/zig
-    $ sudo mv <ZIGLANG>/lib/ /usr/lib/zig
+8.2)    For Corsair devices (optional):
+        $ curl -L -o OpenLinkHub.deb "https://github.com/jurkovic-nikola/OpenLinkHub/releases/download/0.7.7/OpenLinkHub_0.7.7_amd64.deb"
+        $ sudo apt install ./OpenLinkHub.deb
 
-$ mkdir ~/repos
-$ cd ~/repos
-    $ git clone https://github.com/fairyglade/ly
-    $ cd ly
-        $ sudo zig build installsystemd
-        $ sudo systemd enable ly.service
-        $ sudo /sbin/init 6
+9)      Install gpg and yubikey support:
+        $ sudo apt install gpg pcscd scdaemon pinentry-gtk2 pass
+        $ mkdir -p ~/repos
+        $ git clone https://github.com/AWieczorreck/dotfiles ~/repos/dotfiles
+        $ cp -r ~/repos/dotfiles/.gnupg ~
+        $ chmod 700 */.gnupg/ && chmod 700 ~/.gnupg/*
+        $ echo "export PASSWORD_STORE_GPG_OPTS='--no-throw-keyids'" >> .bashrc
+        $ printf "%s\n" "export GPG_TTY=$(tty)" "export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)" "gpgconf --launch gpg-agent" "gpg-connect-agent updatestartuptty /bye > /dev/null" >> .bashrc
 
-$ cd ~/repos
-    $ git clone https://git.suckless.org/dwm
-    $ git clone https://git.suckless.org/st
-    $ git clone https://git.suckless.org/dmenu
-    $ cd st
-        $ vim config.h
+10)     Import public key from Yubikey:
+        $ printf "fetch\nquit\n" | script -q -c "gpg --card-edit" /dev/null
 
-            clean:
-                rm -f st $(OBJ) st-$(VERSION).tar.gz config.h
+11)     Trust current key:
+        $ printf "trust\n5\nj\nquit\n" | script -q -c "gpg --key-edit <email>" /dev/null
 
-        $ sudo make clean install
-        $ cd ..
-    $ cd dwm
-        $ vim Makefile
+12)     Install firefox-nightly:
+        $ sudo install -d -m 0755 /etc/apt/keyrings
 
-            clean:
-                rm -f dwm ${OBJ} dwm-${VERSION}.tar.gz config.h
+        $ wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | sudo tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null
 
-        $ sudo make clean install
-        $ cd ..
-    $ cd dmenu
+        $ gpg -n -q --import --import-options import-show /etc/apt/keyrings/packages.mozilla.org.asc | awk '/pub/{getline; gsub(/^ +| +$/,""); print "\n"$0"\n"}'
+
+        $ echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | sudo tee -a /etc/apt/sources.list.d/mozilla.list > /dev/null
+
+        $ sudo apt update && sudo apt install firefox-nightly firefox-nightly-l10n-de
+
+13)     AMD graphics config:
+        $ sudo sed -i '$i\ \ \ \ \ \ \ \ Option "TearFree" "true"' /usr/share/X11/xorg.conf.d/10-amdgpu.conf
+        $ sudo sed -i '$i\ \ \ \ \ \ \ \ Option "SWCursor" "True"' /usr/share/X11/xorg.conf.d/10-amdgpu.conf
+
+14)     Git config:
+        $ git config --global user.name "$(gpg --with-colons -K | grep '^uid:' | cut -d: -f10 | sed 's/ *<.*>//')"
+        $ git config --global user.email $(gpg --with-colons -K | grep '^uid:' | cut -d: -f10 | sed -n 's/.*<\([^>]*\)>.*/\1/p')
+        $ git config --global user.signingkey $(gpg --with-colons -K | awk -F: '$1=="ssb" && $12 ~ /S/ {print $5; exit} $1=="sec"{p=$5} END{if(!NR || !p){} else if(!seen && !system("")) print p}')
+        $ git config --global init.defaultBranch main
+
+15)     Install bitmap font:
+        $ curl -L -o uw-ttyp0.tar.gz "https://people.mpi-inf.mpg.de/~uwe/misc/uw-ttyp0/uw-ttyp0-2.1.tar.gz"
+        $ tar xf uw-ttyp0-2.1.tar.gz && cd uw-ttyp0-2.1 && ./configure && make && sudo make install
+
+15.1)   Allow bitmap fonts:
+        $ cd /etc/fonts/conf.d && sudo rm -f 70-no-bitmaps.conf && sudo ln -s ../conf.avail/70-yes-bitmaps.conf
+        $ fc-cache -fv
+
+15.2)   Use bitmap font:
+        $ cd ~/repos/st
+        $ rm config.h
+        $ sed -i '/*font/c\static char *font = "Ttyp0 OTB;pixelsize=18:style=Regular";' config.def.h
         $ sudo make clean install
 
-$ su
-    $ mkdir /usr/share/xsessions/
-    $ vim /usr/share/xsessions/dwm.desktop
-
-        [Desktop Entry]
-        Encoding=UTF-8
-        Name=dwm
-        Comment=dynamic window manager
-        Exec=/etc/X11/Xsession
-        Icon=dwm
-        Type=XSession
-    $ exit
-$ touch ~/.xsession
-$ vim ~/.xsession
-
-    exec /usr/local/bin/dwm
-
-$ sudo dpkg-reconfigure locales
-
-$ cd ~/repos
-    $ git clone https://github.com/neovim/neovim
-    $ cd neovim
-    $ make CMAKE_BUILD_TYPE=Release
-    $ sudo apt purge neovim
-    $ sudo apt autoremove
-    $ sudo make install
-
-$ git clone --depth=1 https://github.com/mattmc3/antidote.git ${ZDOTDIR:-$HOME}/.antidote
-$ vim ~/.zsh_plugins.txt
-
-    zsh-users/zsh-syntax-highlighting
-    zsh-users/zsh-autosuggestions
-    zsh-users/zsh-history-substring-search
-    romkatv/powerlevel10k
-
-$ vim ~/.zshrc
-
-    setopt EXTENDED_HISTORY
-    setopt HIST_EXPIRE_DUPS_FIRST
-    setopt HIST_IGNORE_DUPS
-    setopt HIST_IGNORE_ALL_DUPS
-    setopt HIST_IGNORE_SPACE
-    setopt HIST_FIND_NO_DUPS
-    setopt HIST_SAVE_NO_DUPS
-    setopt HIST_BEEP
-
-    HISTFILE=~/.zsh_history
-    HISTSIZE=1000000
-    SAVEHIST=1000000
-
-    bindkey "\e[1;5C" forward-word
-    bindkey "\e[1;5D" backward-word
-    bindkey "\e[5C" forward-word
-    bindkey "\e[5D" backward-word
-    bindkey "^[[1;3C" forward-word
-    bindkey "^[[1;3D" backward-word
-
-    export PASSWORD_STORE_GPG_OPTS='--no-throw-keyids'
-
+16)     Start services:
+        $ sudo systemctl enable upower.service
+        $ sudo systemctl start upower.service
 
 $ su
     $ touch /etc/systemd/system/hotplug-monitor.service
