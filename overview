@@ -2,6 +2,10 @@
         $ su -
         $ apt install sudo
 
+1.1)    Disable SGX:
+        $ sed -i 's/\(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*\)"/\1 nosgx"/' /etc/default/grub
+        $ update-grub
+
 2)      Add username to group 'sudo':
         $ usermod -a -G sudo <username>
 
@@ -44,7 +48,7 @@
         $ printf "%s\n" "numlockx on" "slstatus &" "xinput set-prop $MOUSE_ID \"libinput Accel Speed\" $MOUSE_SPEED" "exec dwm 2> ~/.dwm.log" > ~/.xinitrc
 
 8)      Install useful packages:
-        $ sudo apt install curl wget vim unzip pipewire firmware-linux acpi aptitude upower libfuse2t64 fuse libnss3-dev psmisc
+        $ sudo apt install curl wget vim unzip pipewire firmware-linux acpi aptitude upower libfuse2t64 fuse libnss3-dev psmisc libopengl0
 
 8.1)    Install packages for vim plugins and config:
         $ sudo apt install npm bat ripgrep fzf fd-find
