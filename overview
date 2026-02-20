@@ -42,7 +42,7 @@
         $ printf "%s\n" "slstatus &" "exec dwm 2> ~/.dwm.log" > ~/.xinitrc
 
 8)      Install useful packages:
-        $ sudo apt install curl wget vim unzip pipewire firmware-linux acpi xfonts-base xfonts-75dpi xfonts-100dpi aptitude upower
+        $ sudo apt install curl wget vim unzip pipewire firmware-linux acpi xfonts-base xfonts-75dpi xfonts-100dpi aptitude upower libfuse2t64 fuse libnss3-dev psmisc
 
 8.1)    Install packages for vim plugins and config:
         $ sudo apt install npm bat ripgrep fzf fd-find
