@@ -39,7 +39,9 @@
         $ sudo apt install xserver-xorg x11-xserver-utils x11-utils xinit libxcursor-dev libxcb1-dev libx11-xcb-dev libxcb-res0-dev
 
 7.1)    Start dwm with startx:
-        $ printf "%s\n" "slstatus &" "exec dwm 2> ~/.dwm.log" > ~/.xinitrc
+        $ MOUSE_ID=$(xinput list | grep -i "mouse" | grep -oP 'id=\K[0-9]+')
+        $ MOUSE_SPEED=-0.5
+        $ printf "%s\n" "slstatus &" "xinput set-prop $MOUSE_ID \"libinput Accel Speed\" $MOUSE_SPEED" "exec dwm 2> ~/.dwm.log" > ~/.xinitrc
 
 8)      Install useful packages:
         $ sudo apt install curl wget vim unzip pipewire firmware-linux acpi xfonts-base xfonts-75dpi xfonts-100dpi aptitude upower libfuse2t64 fuse libnss3-dev psmisc
