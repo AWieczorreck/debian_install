@@ -53,7 +53,7 @@
         $ xinput list | grep -i "mouse"
         $ MOUSE_ID=<id>
         $ MOUSE_SPEED=-0.5
-        $ printf "%s\n" "numlockx on" "slstatus &" "xinput set-prop $MOUSE_ID \"libinput Accel Speed\" $MOUSE_SPEED" "exec dwm 2> ~/.dwm.log" > ~/.xinitrc
+        $ printf "%s\n" "export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)" "gpgconf --launch gpg-agent" "numlockx on" "slstatus &" "xinput set-prop $MOUSE_ID \"libinput Accel Speed\" $MOUSE_SPEED" "exec dwm 2> ~/.dwm.log" > ~/.xinitrc
 
 8)      Install useful packages:
         $ sudo apt install curl wget vim unzip pipewire firmware-linux acpi aptitude upower libfuse2t64 fuse libnss3-dev psmisc libopengl0
@@ -72,7 +72,7 @@
         $ cp -r ~/repos/dotfiles/.gnupg ~
         $ chmod 700 */.gnupg/ && chmod 700 ~/.gnupg/*
         $ echo "export PASSWORD_STORE_GPG_OPTS='--no-throw-keyids'" >> .bashrc
-        $ printf "%s\n" "export GPG_TTY=$(tty)" "export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)" "gpgconf --launch gpg-agent" "gpg-connect-agent updatestartuptty /bye > /dev/null" >> .bashrc
+        $ printf "%s\n" "export GPG_TTY=$(tty)" "gpg-connect-agent updatestartuptty /bye > /dev/null" >> .bashrc
 
 10)     Import public key from Yubikey:
         $ printf "fetch\nquit\n" | script -q -c "gpg --card-edit" /dev/null
