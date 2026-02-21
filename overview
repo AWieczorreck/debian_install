@@ -126,6 +126,9 @@
         $ sudo systemctl enable upower.service
         $ sudo systemctl start upower.service
 
+17)     Setup and install more stuff:
+        $ sudo apt install power-profiles-daemon
+
 $ su
     $ touch /etc/systemd/system/hotplug-monitor.service
     $ vim /etc/systemd/system/hotplug-monitor.service
