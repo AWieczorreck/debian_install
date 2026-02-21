@@ -50,9 +50,9 @@
         $ cd slstatus && sudo make install
 
 7)      Install X:
-        $ sudo apt install xserver-xorg x11-xserver-utils x11-utils xinit libxcursor-dev libxcb1-dev libx11-xcb-dev libxcb-res0-dev xfonts-base xfonts-75dpi xfonts-100dpi numlockx xfonts-cyrillic
+        $ sudo apt install xserver-xorg x11-xserver-utils x11-utils xinit libxcursor-dev libxcb1-dev libx11-xcb-dev libxcb-res0-dev xfonts-base xfonts-75dpi xfonts-100dpi numlockx xfonts-cyrillic xserver-xorg-video-all
 
-7.1)    Start dwm with startx:
+7.2)    Start dwm with startx:
         $ xinput list | grep -i "mouse"
         $ MOUSE_ID=<id>
         $ MOUSE_SPEED=-0.5
