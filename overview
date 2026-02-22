@@ -97,7 +97,8 @@
             libnss3-dev \
             psmisc \
             libopengl0 \
-            ranger
+            ranger \
+            thunar
 
 8.1)    Install packages for vim plugins and config:
         $ sudo apt install \
