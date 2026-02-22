@@ -118,7 +118,8 @@
             pcscd \
             scdaemon \
             pinentry-gtk2 \
-            pass
+            pass \
+            yubikey-manager
         $ mkdir -p ~/repos
         $ git clone https://github.com/AWieczorreck/dotfiles ~/repos/dotfiles
         $ cp -r ~/repos/dotfiles/.gnupg ~
