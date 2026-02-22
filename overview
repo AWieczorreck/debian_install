@@ -168,6 +168,9 @@
 17)     Setup and install more stuff:
         $ sudo apt install power-profiles-daemon
 
+18)     Mount more drives in fstab:
+        UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx  <mount_point>  ext4  defaults,noatime,nofail  0  2
+
 $ su
     $ touch /etc/systemd/system/hotplug-monitor.service
     $ vim /etc/systemd/system/hotplug-monitor.service
