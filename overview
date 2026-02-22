@@ -139,6 +139,9 @@
             firefox-nightly \
             firefox-nightly-l10n-de
 
+12.1)   Install passff:
+        $ curl -sSL https://codeberg.org/PassFF/passff-host/releases/download/latest/install_host_app.sh | bash -s -- firefox
+
 13)     AMD graphics config:
         $ sudo sed -i '$i\ \ \ \ \ \ \ \ Option "TearFree" "true"' /usr/share/X11/xorg.conf.d/10-amdgpu.conf
         $ sudo sed -i '$i\ \ \ \ \ \ \ \ Option "SWCursor" "True"' /usr/share/X11/xorg.conf.d/10-amdgpu.conf
