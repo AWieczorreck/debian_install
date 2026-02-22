@@ -32,7 +32,8 @@
             build-essential \
             libx11-dev      \
             libxft-dev      \
-            libxinerama-dev
+            libxinerama-dev \
+            lxpolkit
 
 3.2)    Add VGA-Arbiter to group 'video':
         $ echo 'KERNEL=="vga_arbiter", GROUP="video", MODE="0660"' | sudo tee /etc/udev/rules.d/99-vga-arbiter.rules
@@ -78,7 +79,7 @@
         $ xinput list | grep -i "mouse"
         $ MOUSE_ID=<id>
         $ MOUSE_SPEED=-0.5
-        $ printf "%s\n" "export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)" "gpgconf --launch gpg-agent" "numlockx on" "slstatus &" "xinput set-prop $MOUSE_ID \"libinput Accel Speed\" $MOUSE_SPEED" "exec dwm 2> ~/.dwm.log" > ~/.xinitrc
+        $ printf "%s\n" "export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)" "gpgconf --launch gpg-agent" "lxpolkit &" "numlockx on" "slstatus &" "xinput set-prop $MOUSE_ID \"libinput Accel Speed\" $MOUSE_SPEED" "exec dwm 2> ~/.dwm.log" > ~/.xinitrc
 
 8)      Install useful packages:
         $ sudo apt install \
@@ -95,7 +96,8 @@
             fuse \
             libnss3-dev \
             psmisc \
-            libopengl0
+            libopengl0 \
+            ranger
 
 8.1)    Install packages for vim plugins and config:
         $ sudo apt install \
