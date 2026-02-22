@@ -73,7 +73,8 @@
             xfonts-100dpi \
             numlockx \
             xfonts-cyrillic \
-            xserver-xorg-video-all
+            xserver-xorg-video-all \
+            xdotool
 
 7.1)    Start dwm with startx:
         $ xinput list | grep -i "mouse"
