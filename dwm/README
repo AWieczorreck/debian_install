@@ -1,0 +1,3 @@
+Just apply the dwm_patch.diff at a clean dwm repo.
+$ patch -i dwm_patch.diff
+This includes all patches in the patches folder.

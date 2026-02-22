@@ -1,0 +1,3 @@
+Just apply the st_patch.diff at a clean st repo.
+$ patch -i st_patch.diff
+This includes all patches in the patches folder.
