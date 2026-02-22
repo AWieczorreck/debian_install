@@ -15,6 +15,8 @@
 
 2.1)    $ exit
 
+> REBOOT
+
 
 3)      Update Kernel and firmware:
         $ echo "deb http://deb.debian.org/debian trixie-backports main contrib non-free non-free-firmware" | sudo tee /etc/apt/sources.list.d/trixie-backports.list
@@ -54,7 +56,21 @@
         $ cd slstatus && sudo make install
 
 7)      Install X:
-        $ sudo apt install xserver-xorg x11-xserver-utils x11-utils xinit libxcursor-dev libxcb1-dev libx11-xcb-dev libxcb-res0-dev xfonts-base xfonts-75dpi xfonts-100dpi numlockx xfonts-cyrillic xserver-xorg-video-all
+        $ sudo apt install \
+            xserver-xorg \
+            x11-xserver-utils \
+            x11-utils \
+            xinit \
+            libxcursor-dev \
+            libxcb1-dev \
+            libx11-xcb-dev \
+            libxcb-res0-dev \
+            xfonts-base \
+            xfonts-75dpi \
+            xfonts-100dpi \
+            numlockx \
+            xfonts-cyrillic \
+            xserver-xorg-video-all
 
 7.1)    Start dwm with startx:
         $ xinput list | grep -i "mouse"
@@ -63,17 +79,37 @@
         $ printf "%s\n" "export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)" "gpgconf --launch gpg-agent" "numlockx on" "slstatus &" "xinput set-prop $MOUSE_ID \"libinput Accel Speed\" $MOUSE_SPEED" "exec dwm 2> ~/.dwm.log" > ~/.xinitrc
 
 8)      Install useful packages:
-        $ sudo apt install curl wget vim unzip pipewire firmware-linux acpi aptitude upower libfuse2t64 fuse libnss3-dev psmisc libopengl0
+        $ sudo apt install \
+            curl \
+            wget \
+            vim \
+            unzip \
+            pipewire \
+            firmware-linux \
+            acpi \
+            aptitude \
+            upower \
+            libfuse2t64 \
+            fuse \
+            libnss3-dev \
+            psmisc \
+            libopengl0
 
 8.1)    Install packages for vim plugins and config:
-        $ sudo apt install npm bat ripgrep fzf fd-find
-
-8.2)    For Corsair devices (optional):
-        $ curl -L -o OpenLinkHub.deb "https://github.com/jurkovic-nikola/OpenLinkHub/releases/download/0.7.7/OpenLinkHub_0.7.7_amd64.deb"
-        $ sudo apt install ./OpenLinkHub.deb
+        $ sudo apt install \
+            npm \
+            bat \
+            ripgrep \
+            fzf \
+            fd-find
 
 9)      Install gpg and yubikey support:
-        $ sudo apt install gpg pcscd scdaemon pinentry-gtk2 pass
+        $ sudo apt install \
+            gpg \
+            pcscd \
+            scdaemon \
+            pinentry-gtk2 \
+            pass
         $ mkdir -p ~/repos
         $ git clone https://github.com/AWieczorreck/dotfiles ~/repos/dotfiles
         $ cp -r ~/repos/dotfiles/.gnupg ~
@@ -89,14 +125,13 @@
 
 12)     Install firefox-nightly:
         $ sudo install -d -m 0755 /etc/apt/keyrings
-
         $ wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | sudo tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null
-
         $ gpg -n -q --import --import-options import-show /etc/apt/keyrings/packages.mozilla.org.asc | awk '/pub/{getline; gsub(/^ +| +$/,""); print "\n"$0"\n"}'
-
         $ echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | sudo tee -a /etc/apt/sources.list.d/mozilla.list > /dev/null
-
-        $ sudo apt update && sudo apt install firefox-nightly firefox-nightly-l10n-de
+        $ sudo apt update
+        $ sudo apt install \
+            firefox-nightly \
+            firefox-nightly-l10n-de
 
 13)     AMD graphics config:
         $ sudo sed -i '$i\ \ \ \ \ \ \ \ Option "TearFree" "true"' /usr/share/X11/xorg.conf.d/10-amdgpu.conf
