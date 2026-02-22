@@ -53,6 +53,9 @@
         $ git clone https://git.suckless.org/dmenu
         $ cd dmenu && sudo make install
 
+6.1)    Install passmenu:
+        $ sudo cp <debian_install>/tools/passmenu /usr/local/bin
+
 7)      Install slstatus:
         $ mkdir -p ~/repos && cd ~/repos
         $ git clone https://git.suckless.org/slstatus
