@@ -1,6 +1,9 @@
+0)      Clone this repo :)
+        $ git clone git@github.com:AWieczorreck/debian_install.git
+
 1)      Install sudo:
         $ su -
-        $ apt install sudo
+        $ apt install sudo git
 
 1.1)    Disable SGX:
         $ sed -i 's/\(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*\)"/\1 nosgx"/' /etc/default/grub
@@ -27,7 +30,6 @@
 3.1)    Install packages:
         $ sudo apt install  \
             build-essential \
-            git             \
             libx11-dev      \
             libxft-dev      \
             libxinerama-dev
