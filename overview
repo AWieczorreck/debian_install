@@ -83,7 +83,7 @@
         $ xinput list | grep -i "mouse"
         $ MOUSE_ID=<id>
         $ MOUSE_SPEED=-0.5
-        $ printf "%s\n" "export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)" "gpgconf --launch gpg-agent" "lxpolkit &" "numlockx on" "slstatus &" "xinput set-prop $MOUSE_ID \"libinput Accel Speed\" $MOUSE_SPEED" "exec dwm 2> ~/.dwm.log" > ~/.xinitrc
+        $ printf "%s\n" "export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)" "gpgconf --launch gpg-agent" "dunst &" "lxpolkit &" "numlockx on" "slstatus &" "xinput set-prop $MOUSE_ID \"libinput Accel Speed\" $MOUSE_SPEED" "exec dwm 2> ~/.dwm.log" > ~/.xinitrc
 
 8)      Install useful packages:
         $ sudo apt install \
@@ -102,7 +102,8 @@
             psmisc \
             libopengl0 \
             ranger \
-            thunar
+            thunar \
+            dunst
 
 8.1)    Install packages for vim plugins and config:
         $ sudo apt install \
