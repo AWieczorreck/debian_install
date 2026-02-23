@@ -12,7 +12,7 @@ index ffa69b4..3f26804 100644
  dist: clean
  	mkdir -p dwm-${VERSION}
 diff --git a/config.def.h b/config.def.h
-index 81c3fc0..e08161b 100644
+index 81c3fc0..4f77069 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -1,16 +1,23 @@
@@ -166,7 +166,7 @@ index 81c3fc0..e08161b 100644
  	{ MODKEY|ShiftMask,             XK_period, tagmon,         {.i = +1 } },
  	TAGKEYS(                        XK_1,                      0)
  	TAGKEYS(                        XK_2,                      1)
-@@ -95,20 +138,23 @@ static const Key keys[] = {
+@@ -95,13 +138,16 @@ static const Key keys[] = {
  	TAGKEYS(                        XK_7,                      6)
  	TAGKEYS(                        XK_8,                      7)
  	TAGKEYS(                        XK_9,                      8)
@@ -184,14 +184,11 @@ index 81c3fc0..e08161b 100644
  	{ ClkLtSymbol,          0,              Button1,        setlayout,      {0} },
  	{ ClkLtSymbol,          0,              Button3,        setlayout,      {.v = &layouts[2]} },
  	{ ClkWinTitle,          0,              Button2,        zoom,           {0} },
- 	{ ClkStatusText,        0,              Button2,        spawn,          {.v = termcmd } },
- 	{ ClkClientWin,         MODKEY,         Button1,        movemouse,      {0} },
- 	{ ClkClientWin,         MODKEY,         Button2,        togglefloating, {0} },
--	{ ClkClientWin,         MODKEY,         Button3,        resizemouse,    {0} },
-+	{ ClkClientWin,         MODKEY,         Button1,        resizemouse,    {0} },
- 	{ ClkTagBar,            0,              Button1,        view,           {0} },
- 	{ ClkTagBar,            0,              Button3,        toggleview,     {0} },
+@@ -114,4 +160,3 @@ static const Button buttons[] = {
  	{ ClkTagBar,            MODKEY,         Button1,        tag,            {0} },
+ 	{ ClkTagBar,            MODKEY,         Button3,        toggletag,      {0} },
+ };
+-
 diff --git a/config.mk b/config.mk
 index 982dc21..8fdfa4b 100644
 --- a/config.mk
