@@ -12,7 +12,7 @@ index ffa69b4..3f26804 100644
  dist: clean
  	mkdir -p dwm-${VERSION}
 diff --git a/config.def.h b/config.def.h
-index 81c3fc0..4f77069 100644
+index 81c3fc0..157b1eb 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -1,16 +1,23 @@
@@ -88,7 +88,7 @@ index 81c3fc0..4f77069 100644
 +	{ "Firefox", NULL,     NULL,           1 << 8,    0,          0,          -1,        -1 },
 +	{ "St",      NULL,     NULL,           0,         0,          1,           0,        -1 },
 +	{ NULL,      NULL,     "Event Tester", 0,         0,          0,           1,        -1 }, /* xev */
-+	{ "Gimp",    NULL,     NULL,	       0,	  1,	     -1,			},
++	{ "Gimp",    NULL,     NULL,	       0,		  1,	     -1,			},
 +	{ NULL,      "spterm", NULL,	       SPTAG(0),  1,	     -1,			},
 +	{ NULL,      "spfm",   NULL,	       SPTAG(1),  1,	     -1,			},
 +	{ "Surf",    "surf",   NULL,	       SPTAG(2),  1,         -1,			},
@@ -115,12 +115,16 @@ index 81c3fc0..4f77069 100644
  #define TAGKEYS(KEY,TAG) \
  	{ MODKEY,                       KEY,      view,           {.ui = 1 << TAG} }, \
  	{ MODKEY|ControlMask,           KEY,      toggleview,     {.ui = 1 << TAG} }, \
-@@ -59,32 +96,38 @@ static const Layout layouts[] = {
+@@ -59,32 +96,44 @@ static const Layout layouts[] = {
  /* commands */
  static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
  static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
 +
  static const char *termcmd[]  = { "st", NULL };
++static const char *webbrowsercmd[][3] = {
++	{ "firefox-nightly", NULL, NULL },
++	{ "firefox-nightly", "--private-window", NULL },
++};
  
  static const Key keys[] = {
  	/* modifier                     key        function        argument */
@@ -145,6 +149,8 @@ index 81c3fc0..4f77069 100644
 +	{ MODKEY,                       XK_r,      reorganizetags, {0} },
 +	{ MODKEY,                       XK_s,      togglesticky,   {0} },
 +	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
++	{ MODKEY,                       XK_w,      spawn,          {.v = &webbrowsercmd[0]} },
++	{ MODKEY|ShiftMask,             XK_w,      spawn,          {.v = &webbrowsercmd[1]} },
 +	{ MODKEY,                       XK_x,      togglescratch,  {.ui = 0 } },
 +	{ MODKEY,                       XK_y,      togglescratch,  {.ui = 1 } },
 +	{ MODKEY,                       XK_z,      togglescratch,  {.ui = 2 } },
@@ -166,7 +172,7 @@ index 81c3fc0..4f77069 100644
  	{ MODKEY|ShiftMask,             XK_period, tagmon,         {.i = +1 } },
  	TAGKEYS(                        XK_1,                      0)
  	TAGKEYS(                        XK_2,                      1)
-@@ -95,13 +138,16 @@ static const Key keys[] = {
+@@ -95,13 +144,16 @@ static const Key keys[] = {
  	TAGKEYS(                        XK_7,                      6)
  	TAGKEYS(                        XK_8,                      7)
  	TAGKEYS(                        XK_9,                      8)
@@ -184,7 +190,7 @@ index 81c3fc0..4f77069 100644
  	{ ClkLtSymbol,          0,              Button1,        setlayout,      {0} },
  	{ ClkLtSymbol,          0,              Button3,        setlayout,      {.v = &layouts[2]} },
  	{ ClkWinTitle,          0,              Button2,        zoom,           {0} },
-@@ -114,4 +160,3 @@ static const Button buttons[] = {
+@@ -114,4 +166,3 @@ static const Button buttons[] = {
  	{ ClkTagBar,            MODKEY,         Button1,        tag,            {0} },
  	{ ClkTagBar,            MODKEY,         Button3,        toggletag,      {0} },
  };
