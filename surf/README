@@ -1,0 +1,3 @@
+Just apply the surf_patch.diff at a clean surf repo.
+$ patch -i surf_patch.diff
+This includes all patches in the patches folder.

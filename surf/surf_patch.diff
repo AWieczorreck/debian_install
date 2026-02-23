@@ -1,0 +1,65 @@
+diff --git a/Makefile b/Makefile
+index 1edf820..7217ab0 100644
+--- a/Makefile
++++ b/Makefile
+@@ -39,6 +39,7 @@ $(WOBJ): $(WSRC)
+ clean:
+ 	rm -f surf $(OBJ)
+ 	rm -f $(WLIB) $(WOBJ)
++	rm -f config.h
+ 
+ distclean: clean
+ 	rm -f config.h surf-$(VERSION).tar.gz
+diff --git a/config.def.h b/config.def.h
+index 9b0f6f6..89e1e47 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -97,9 +97,9 @@ static WebKitFindOptions findopts = WEBKIT_FIND_OPTIONS_CASE_INSENSITIVE |
+ 
+ /* VIDEOPLAY(URI) */
+ #define VIDEOPLAY(u) {\
+-        .v = (const char *[]){ "/bin/sh", "-c", \
+-             "mpv --really-quiet \"$0\"", u, NULL \
+-        } \
++    .v = (const char *[]){ "/bin/sh", "-c", \
++         "xdotool key space; mpv --really-quiet \"$0\"", u, NULL \
++    } \
+ }
+ 
+ /* styles */
+@@ -133,6 +133,7 @@ static Key keys[] = {
+ 	{ MODKEY,                GDK_KEY_g,      spawn,      SETPROP("_SURF_URI", "_SURF_GO", PROMPT_GO) },
+ 	{ MODKEY,                GDK_KEY_f,      spawn,      SETPROP("_SURF_FIND", "_SURF_FIND", PROMPT_FIND) },
+ 	{ MODKEY,                GDK_KEY_slash,  spawn,      SETPROP("_SURF_FIND", "_SURF_FIND", PROMPT_FIND) },
++	{ MODKEY,                GDK_KEY_w,      playexternal, { 0 } },
+ 
+ 	{ 0,                     GDK_KEY_Escape, stop,       { 0 } },
+ 	{ MODKEY,                GDK_KEY_c,      stop,       { 0 } },
+diff --git a/surf.c b/surf.c
+index 7a0f624..1009aaf 100644
+--- a/surf.c
++++ b/surf.c
+@@ -237,6 +237,7 @@ static void togglefullscreen(Client *c, const Arg *a);
+ static void togglecookiepolicy(Client *c, const Arg *a);
+ static void toggleinspector(Client *c, const Arg *a);
+ static void find(Client *c, const Arg *a);
++static void playexternal(Client *c, const Arg *a);
+ 
+ /* Buttons */
+ static void clicknavigate(Client *c, const Arg *a, WebKitHitTestResult *h);
+@@ -1988,6 +1989,15 @@ clickexternplayer(Client *c, const Arg *a, WebKitHitTestResult *h)
+ 	spawn(c, &arg);
+ }
+ 
++void
++playexternal(Client *c, const Arg *a)
++{
++	Arg arg;
++
++	arg = (Arg)VIDEOPLAY(geturi(c));
++	spawn(c, &arg);
++}
++
+ int
+ main(int argc, char *argv[])
+ {
