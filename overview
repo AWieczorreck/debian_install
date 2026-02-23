@@ -109,7 +109,7 @@ EOF'
 9.2)    Start dwm with startx:
         $ xinput list | grep -i "mouse"
         $ MOUSE_ID=<id>
-        $ MOUSE_SPEED=-0.5
+        $ MOUSE_SPEED=-0.85
         $ printf "%s\n" "export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)" "gpgconf --launch gpg-agent" "dbus-update-activation-environment --systemd DISPLAY XAUTHORITY" "dunst &" "lxpolkit &" "numlockx on" "slstatus &" "xinput set-prop $MOUSE_ID \"libinput Accel Speed\" $MOUSE_SPEED" "startdwm" > ~/.xinitrc
 
 10)     Install useful packages:
