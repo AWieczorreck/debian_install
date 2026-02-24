@@ -45,7 +45,7 @@ cd ~/repos/$TOOL && rm -f config.h && sudo make install
 MOUSE_ID=10
 MOUSE_SPEED=-0.85
 printf "%s\n" "export SSH_AUTH_SOCK=\$(gpgconf --list-dirs agent-ssh-socket)" "gpgconf --launch gpg-agent" "dbus-update-activation-environment --systemd DISPLAY XAUTHORITY" "dunst &" "lxpolkit &" "numlockx on" "slstatus &" "xinput set-prop $MOUSE_ID \"libinput Accel Speed\" $MOUSE_SPEED" "xset s off -dpms" "startdwm" > ~/.xinitrc
-sudo apt install -y curl wget vim unzip pipewire acpi aptitude upower libfuse2t64 fuse libnss3-dev psmisc libopengl0 mc thunar lxpolkit dunst
+sudo apt install -y curl wget vim unzip pipewire acpi aptitude upower libfuse2t64 fuse libnss3-dev psmisc libopengl0 mc thunar lxpolkit dunst ffmpeg
 sudo apt install -y npm bat ripgrep fzf fd-find
 sudo apt install -y gpg pcscd scdaemon pinentry-gtk2 pass yubikey-manager
 git clone https://github.com/AWieczorreck/dotfiles ~/repos/dotfiles
