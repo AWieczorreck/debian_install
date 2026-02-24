@@ -1,11 +1,10 @@
-USERNAME=""
-read -p "username: " USERNAME
-apt install git
-exit
-mkdir -p ~/repos
-git clone https://github.com/AWieczorreck/debian_install.git ~/repos/debian_install
+#apt install git
+#exit
+#git clone https://github.com/AWieczorreck/debian_install.git ~/repos/debian_install
 #<START>
 su -
+USERNAME=""
+read -p "username: " USERNAME
 apt install sudo
 sed -i 's/\(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*\)"/\1 nosgx"/' /etc/default/grub
 echo "GRUB_GFXMODE=1920x1200" >> /etc/default/grub
