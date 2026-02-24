@@ -67,6 +67,7 @@ sudo apt install -y firefox-nightly firefox-nightly-l10n-de
 curl -sSL https://codeberg.org/PassFF/passff-host/releases/download/latest/install_host_app.sh | bash -s -- firefox
 sudo sed -i '$i\ \ \ \ \ \ \ \ Option "TearFree" "true"' /usr/share/X11/xorg.conf.d/10-amdgpu.conf
 sudo sed -i '$i\ \ \ \ \ \ \ \ Option "SWCursor" "true"' /usr/share/X11/xorg.conf.d/10-amdgpu.conf
+sudo sed -i '/HotplugDriver/d' /usr/share/X11/xorg.conf.d/10-amdgpu.conf
 git config --global user.name "$(gpg --with-colons -K | grep '^uid:' | cut -d: -f10 | sed 's/ *<.*>//')"
 git config --global user.email $(gpg --with-colons -K | grep '^uid:' | cut -d: -f10 | sed -n 's/.*<\([^>]*\)>.*/\1/p')
 git config --global user.signingkey $(gpg --with-colons -K | awk -F: '$1=="ssb" && $12 ~ /S/ {print $5; exit} $1=="sec"{p=$5} END{if(!NR || !p){} else if(!seen && !system("")) print p}')
