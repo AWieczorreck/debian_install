@@ -41,22 +41,7 @@ cd $TOOL && rm config.h && sudo make install
 sudo cp ~/repos/debian_install/tools/passmenu /usr/local/bin
 sudo cp ~/repos/debian_install/tools/totpmenu /usr/local/bin
 sudo apt install xserver-xorg x11-xserver-utils x11-utils xinit libxcursor-dev libxcb1-dev libx11-xcb-dev libxcb-res0-dev xfonts-base xfonts-75dpi xfonts-100dpi numlockx xfonts-cyrillic xserver-xorg-video-all xdotool
-sudo bash -c 'cat > /usr/local/bin/startdwm <<EOF
-csum=""
-new_csum=\$(sha1sum \$(which dwm))
-while true
-do
-    if [ "\$csum" != "\$new_csum" ]
-    then
-        csum=\$new_csum
-        dwm 2> ~/.dwm.log
-    else
-        exit 0
-    fi
-    new_csum=\$(sha1sum \$(which dwm))
-    sleep 0.5
-done
-EOF'
+sudo cp ~/repos/debian_install/tools/startdwm /usr/local/bin/
 sudo chmod +x /usr/local/bin/startdwm
 #xinput list | grep -i "mouse"
 MOUSE_ID=10
