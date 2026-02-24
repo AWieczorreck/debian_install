@@ -1,6 +1,7 @@
 #apt install -y git
 #exit
 #git clone https://github.com/AWieczorreck/debian_install.git ~/repos/debian_install
+#git remote set-url origin git@github.com:AWieczorreck/debian_install
 #<START>
 su -
 USERNAME=""
