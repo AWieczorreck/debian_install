@@ -1,50 +1,52 @@
-#apt install git
+#apt install -y git
 #exit
 #git clone https://github.com/AWieczorreck/debian_install.git ~/repos/debian_install
 #<START>
 su -
 USERNAME=""
 read -p "username: " USERNAME
-apt install sudo
+apt install -y sudo
 sed -i 's/\(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*\)"/\1 nosgx"/' /etc/default/grub
 echo "GRUB_GFXMODE=1920x1200" >> /etc/default/grub
 echo "GRUB_GFXPAYLOAD_LINUX=keep" >> /etc/default/grub
 usermod -a -G sudo $USERNAME
 exit
+exit
 sudo update-grub
-#>>> REBOOT <<<
 echo "deb http://deb.debian.org/debian trixie-backports main contrib non-free non-free-firmware" | sudo tee /etc/apt/sources.list.d/trixie-backports.list
 sudo apt update
-sudo apt install -t trixie-backports linux-image-amd64 linux-headers-amd64 firmware-amd-graphics
-sudo apt install build-essential libx11-dev libxft-dev libxinerama-dev 
+sudo apt install -y -t trixie-backports linux-image-amd64 linux-headers-amd64 firmware-amd-graphics
+sudo reboot
+#>>> REBOOT <<<
+sudo apt install -y build-essential libx11-dev libxft-dev libxinerama-dev
 echo 'KERNEL=="vga_arbiter", GROUP="video", MODE="0660"' | sudo tee /etc/udev/rules.d/99-vga-arbiter.rules
-TOOL=dwm
-git clone https://git.suckless.org/$TOOL ~/repos/$TOOL
-cd ~/repos/$TOOL && rm config.h && patch -i ~/repos/debian_install/$TOOL/$TOOL_patch.diff && sudo make install
-TOOL=st
-git clone https://git.suckless.org/$TOOL ~/repos/$TOOL
-cd ~/repos/$TOOL && rm config.h && patch -i ~/repos/debian_install/$TOOL/$TOOL_patch.diff && sudo make install
-TOOL=surf
-git clone https://git.suckless.org/$TOOL ~/repos/$TOOL
-cd ~/repos/$TOOL && rm config.h && patch -i ~/repos/debian_install/$TOOL/$TOOL_patch.diff && sudo make install
-TOOL=dmenu
-git clone https://git.suckless.org/$TOOL ~/repos/$TOOL
-cd ~/repos/$TOOL && rm config.h && patch -i ~/repos/debian_install/$TOOL/$TOOL_patch.diff && sudo make install
-TOOL=slstatus
-git clone https://git.suckless.org/$TOOL ~/repos/$TOOL
-cd ~/repos/$TOOL && rm config.h && sudo make install
 sudo cp ~/repos/debian_install/tools/passmenu /usr/local/bin
 sudo cp ~/repos/debian_install/tools/totpmenu /usr/local/bin
-sudo apt install xserver-xorg x11-xserver-utils x11-utils xinit libxcursor-dev libxcb1-dev libx11-xcb-dev libxcb-res0-dev xfonts-base xfonts-75dpi xfonts-100dpi numlockx xfonts-cyrillic xserver-xorg-video-all xdotool
+sudo apt install -y xserver-xorg x11-xserver-utils x11-utils xinit libxcursor-dev libxcb1-dev libx11-xcb-dev libxcb-res0-dev xfonts-base xfonts-75dpi xfonts-100dpi xfonts-cyrillic numlockx xserver-xorg-video-all xdotool xinput libgtk-3-dev libgcr-3-dev libwebkit2gtk-4.1-dev
 sudo cp ~/repos/debian_install/tools/startdwm /usr/local/bin/
 sudo chmod +x /usr/local/bin/startdwm
+TOOL=dwm
+git clone https://git.suckless.org/$TOOL ~/repos/$TOOL
+cd ~/repos/$TOOL && rm -f config.h && patch -i ~/repos/debian_install/$TOOL/$(echo $TOOL)_patch.diff && sudo make install
+TOOL=st
+git clone https://git.suckless.org/$TOOL ~/repos/$TOOL
+cd ~/repos/$TOOL && rm -f config.h && patch -i ~/repos/debian_install/$TOOL/$(echo $TOOL)_patch.diff && sudo make install
+TOOL=surf
+git clone https://git.suckless.org/$TOOL ~/repos/$TOOL
+cd ~/repos/$TOOL && rm -f config.h && patch -i ~/repos/debian_install/$TOOL/$(echo $TOOL)_patch.diff && sudo make install
+TOOL=dmenu
+git clone https://git.suckless.org/$TOOL ~/repos/$TOOL
+cd ~/repos/$TOOL && rm -f config.h && sudo make install
+TOOL=slstatus
+git clone https://git.suckless.org/$TOOL ~/repos/$TOOL
+cd ~/repos/$TOOL && rm -f config.h && sudo make install
 #xinput list | grep -i "mouse"
 MOUSE_ID=10
 MOUSE_SPEED=-0.85
 printf "%s\n" "export SSH_AUTH_SOCK=\$(gpgconf --list-dirs agent-ssh-socket)" "gpgconf --launch gpg-agent" "dbus-update-activation-environment --systemd DISPLAY XAUTHORITY" "dunst &" "lxpolkit &" "numlockx on" "slstatus &" "xinput set-prop $MOUSE_ID \"libinput Accel Speed\" $MOUSE_SPEED" "xset s off -dpms" "startdwm" > ~/.xinitrc
-sudo apt install curl wget vim unzip pipewire firmware-linux acpi aptitude upower libfuse2t64 fuse libnss3-dev psmisc libopengl0 mc thunar lxpolkit dunst
-sudo apt install npm bat ripgrep fzf fd-find
-sudo apt install gpg pcscd scdaemon pinentry-gtk2 pass yubikey-manager
+sudo apt install -y curl wget vim unzip pipewire acpi aptitude upower libfuse2t64 fuse libnss3-dev psmisc libopengl0 mc thunar lxpolkit dunst
+sudo apt install -y npm bat ripgrep fzf fd-find
+sudo apt install -y gpg pcscd scdaemon pinentry-gtk2 pass yubikey-manager
 git clone https://github.com/AWieczorreck/dotfiles ~/repos/dotfiles
 cp -r ~/repos/dotfiles/.gnupg ~
 chmod 700 ~/.gnupg/ && chmod 700 ~/.gnupg/*
@@ -54,12 +56,13 @@ printf "fetch\nquit\n" | script -q -c "gpg --card-edit" /dev/null
 EMAIL=""
 read -p "gpg email: " EMAIL
 printf "trust\n5\nj\nquit\n" | script -q -c "gpg --key-edit $EMAIL" /dev/null
+git clone git@github.com:AWieczorreck/password-store ~/.password-store
 sudo install -d -m 0755 /etc/apt/keyrings
 wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | sudo tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null
 gpg -n -q --import --import-options import-show /etc/apt/keyrings/packages.mozilla.org.asc | awk '/pub/{getline; gsub(/^ +| +$/,""); print "\n"$0"\n"}'
 echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | sudo tee -a /etc/apt/sources.list.d/mozilla.list > /dev/null
 sudo apt update
-sudo apt install firefox-nightly firefox-nightly-l10n-de
+sudo apt install -y firefox-nightly firefox-nightly-l10n-de
 curl -sSL https://codeberg.org/PassFF/passff-host/releases/download/latest/install_host_app.sh | bash -s -- firefox
 sudo sed -i '$i\ \ \ \ \ \ \ \ Option "TearFree" "true"' /usr/share/X11/xorg.conf.d/10-amdgpu.conf
 sudo sed -i '$i\ \ \ \ \ \ \ \ Option "SWCursor" "true"' /usr/share/X11/xorg.conf.d/10-amdgpu.conf
@@ -73,7 +76,7 @@ cd /etc/fonts/conf.d && sudo rm -f 70-no-bitmaps*.conf && sudo ln -s ../conf.ava
 fc-cache -fv
 sudo systemctl enable upower.service
 sudo systemctl start upower.service
-sudo apt install power-profiles-daemon
+sudo apt install -y power-profiles-daemon
 <END>
 
 21)     Mount more drives in fstab:
