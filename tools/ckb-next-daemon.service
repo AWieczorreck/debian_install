@@ -1,0 +1,10 @@
+[Unit]
+Description=ckb-next Daemon
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/ckb-next-daemon
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

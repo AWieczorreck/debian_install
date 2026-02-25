@@ -57,8 +57,8 @@ index 81c3fc0..157b1eb 100644
 +	const char *name;
 +	const void *cmd;
 +} Sp;
-+const char *spcmd1[] = {"st", "-n", "spterm", "-g", "120x34", NULL };
-+const char *spcmd2[] = {"st", "-n", "spfm", "-g", "170x50", "-e", "mc", NULL };
++const char *spcmd1[] = {"alacritty", "--title", "spterm", "-o", "window.dimensions.lines=35", "-o", "window.dimensions.columns=100", NULL };
++const char *spcmd2[] = {"alacritty", "--title", "spfm", "-o", "window.dimensions.lines=35", "-o", "window.dimensions.columns=100", "--command", "mc", NULL };
 +const char *spcmd3[] = {"surf", NULL};
 +static Sp scratchpads[] = {
 +	/* name          cmd  */
