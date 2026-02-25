@@ -94,6 +94,14 @@ echo "deb https://repository.spotify.com stable non-free" | sudo tee /etc/apt/so
 sudo apt update && sudo apt install -y spotify-client
 wget https://gist.githubusercontent.com/archisman-panigrahi/cd571ddea1aa2c5e2b4fa7bcbee7d5df/raw/setup-snixembed-debian.sh && sudo bash setup-snixembed-debian.sh
 sed -i '$ i snixembed --fork \&' ~/.xinitrc
+echo "RADV_PERFTEST=aco" | sudo tee -a /etc/environment
+sudo sed -i 's/\(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*\)"/\1 amdgpu.dc=1"/' /etc/default/grub
+sudo apt install -y rdfind
+git clone https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git ~/repos/linux-firmware
+cd ~/repos/linux-firmware
+sudo make install
+sudo make dedup
+sudo update-initramfs -u -k all
 sudo reboot
 <END>
 
