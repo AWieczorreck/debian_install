@@ -80,6 +80,9 @@ fc-cache -fv
 sudo systemctl enable upower.service
 sudo systemctl start upower.service
 sudo apt install -y power-profiles-daemon
+sudo sed -i 's/^# \(en_US.UTF-8\)/\1/' /etc/locale.gen
+sudo sed -i 's/^# \(de_DE.UTF-8\)/\1/' /etc/locale.gen
+sudo locale-gen
 sudo apt install ckb-next
 sudo cp ~/repos/debian_install/tools/ckb-next-daemon.service /etc/systemd/system/
 sudo systemctl daemon-reload
