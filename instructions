@@ -14,7 +14,7 @@ usermod -a -G sudo $USERNAME
 exit
 exit
 sudo update-grub
-echo "deb http://deb.debian.org/debian trixie-backports main contrib non-free non-free-firmware" | sudo tee /etc/apt/sources.list.d/trixie-backports.list
+echo "deb [arch=amd64,i386] http://deb.debian.org/debian trixie-backports main contrib non-free non-free-firmware" | sudo tee /etc/apt/sources.list.d/trixie-backports.list
 sudo apt update
 sudo apt install -y -t trixie-backports linux-image-amd64 linux-headers-amd64 firmware-amd-graphics
 sudo reboot
