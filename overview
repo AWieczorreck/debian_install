@@ -81,6 +81,7 @@
             xfonts-base \
             xfonts-75dpi \
             xfonts-100dpi \
+            gsfonts-x11 \
             numlockx \
             xfonts-cyrillic \
             xserver-xorg-video-all \
