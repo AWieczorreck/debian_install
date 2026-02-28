@@ -28,9 +28,11 @@ sudo chmod u+s /usr/bin/Xorg
 sudo sed -i 's/^XKBOPTIONS=""/#XKBOPTIONS=""/' /etc/default/keyboard
 sudo cp ~/repos/debian_install/tools/startdwm /usr/local/bin/
 sudo chmod +x /usr/local/bin/startdwm
-sudo apt install -y alacritty
 cp -r ~/repos/debian_install/alacritty/config/alacritty/ ~/.config/
 TOOL=dwm
+git clone https://git.suckless.org/$TOOL ~/repos/$TOOL
+cd ~/repos/$TOOL && rm -f config.h && patch -i ~/repos/debian_install/$TOOL/$(echo $TOOL)_patch.diff && sudo make install
+TOOL=st
 git clone https://git.suckless.org/$TOOL ~/repos/$TOOL
 cd ~/repos/$TOOL && rm -f config.h && patch -i ~/repos/debian_install/$TOOL/$(echo $TOOL)_patch.diff && sudo make install
 TOOL=surf
