@@ -1,0 +1,65 @@
+$ su
+    $ touch /etc/systemd/system/hotplug-monitor.service
+    $ vim /etc/systemd/system/hotplug-monitor.service
+
+    # maybe you need this also this two, or only this two?
+    ($ touch /etc/systemd/system/multi-user.target.wants/hotplug-monitor.service)
+    ($ vim /etc/systemd/system/multi-user.target.wants/hotplug-monitor.service)
+
+        [Unit]
+        Description=Monitor hotplug service
+
+        [Service]
+        Type=simple
+
+        # your user and not as root
+        User=user
+
+        # hotplug script path
+        ExecStart=/usr/local/bin/hotplug_monitor.sh
+
+        [Install]
+        WantedBy=multi-user.target
+    $ touch /usr/local/bin/hotplug_monitor.sh
+    $ vim /usr/local/bin/hotplug_monitor.sh
+
+        #!/bin/bash
+
+        USER_NAME=$(id -un)
+        USER_ID=$(id -u)
+
+        export DISPLAY"=:0"
+        export XAUTHORITY="/home/${USER_NAME}/.Xauthority"
+        export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${USER_ID}/bus"
+
+        # change connection identifier if needed
+        height_primary="1080"
+        height_second="1200"
+        width_primary="1920"
+        width_second="1920"
+        internal="eDP1"
+        external="HDMI2"
+        device="card0-HDMI-A-2"
+        resolution_primary="${width_primary}x${height_primary}"
+        resolution_second="${width_second}x${height_second}"
+
+        if [ $(cat /sys/class/drm/${device}/status) == "connected" ]; then
+            xrandr --output ${internal} --primary --mode ${resolution_primary} --pos 0x${height_second} --rotate normal --output ${external} --auto --mode ${resolution_second} --pos 0x0 --rotate normal
+            /home/user/.xinitrc
+        elif [ $(cat /sys/class/drm/${device}/status) == "disconnected" ]; then
+            xrandr --output ${external} --off
+            xrandr --output ${internal} --auto
+        else
+            exit
+        fi
+    $ touch /etc/udev/rules.d/95-monitor-hotplug.rules
+    $ vim /etc/udev/rules.d/95-monitor-hotplug.rules
+
+        ACTION=="change", KERNEL=="card0", SUBSYSTEM=="drm", RUN+="/usr/bin/systemctl start hotplug-monitor.service"
+        ACTION=="add", KERNEL=="card0", SUBSYSTEM=="drm", RUN+="/usr/bin/systemctl start hotplug-monitor.service"
+
+    $ exit
+
+    $ sudo chown $USER:$USER /usr/local/bin/hotplug_monitor.sh
+    $ sudo chmod +x /usr/local/bin/hotplug_monitor.sh
+    $ sudo systemctl enable hotplug-monitor.service
