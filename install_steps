@@ -103,6 +103,9 @@ cd ~/repos/linux-firmware
 sudo make install
 sudo make dedup
 sudo update-initramfs -u -k all
+sudo groupadd gamemode
+sudo usermod -a -G gamemode $USER
+sudo apt install -y gamemode
 sudo reboot
 <END>
 
