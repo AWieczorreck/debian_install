@@ -45,7 +45,8 @@ TOOL=slstatus
 git clone https://git.suckless.org/$TOOL ~/repos/$TOOL
 cd ~/repos/$TOOL && rm -f config.h && sudo make install
 printf "%s\n" "export SSH_AUTH_SOCK=\$(gpgconf --list-dirs agent-ssh-socket)" "gpgconf --launch gpg-agent" "dbus-update-activation-environment --systemd DISPLAY XAUTHORITY" "dunst &" "lxpolkit &" "numlockx on" "slstatus &" "xset s off -dpms" "startdwm" > ~/.xinitrc
-sudo apt install -y curl wget vim unzip pipewire acpi upower libfuse2t64 fuse libnss3-dev psmisc libopengl0 mc thunar lxpolkit dunst ffmpeg pavucontrol
+sudo apt install -y curl wget vim unzip pipewire acpi upower libfuse2t64 fuse libnss3-dev psmisc libopengl0 mc thunar lxpolkit dunst pavucontrol
+sudo apt install -y ffmpeg gstreamer1.0-libav  gstreamer1.0-plugins-bad  gstreamer1.0-plugins-ugly
 sudo apt install -y npm bat ripgrep fzf fd-find
 sudo apt install -y gpg pcscd scdaemon pinentry-gtk2 pass yubikey-manager
 sudo apt install -y vulkan-tools mesa-vulkan-drivers
