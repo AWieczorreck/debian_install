@@ -1,0 +1,2 @@
+Just apply the slstatus_patch.diff at a clean st repo.
+$ patch -i slstatus_patch.diff

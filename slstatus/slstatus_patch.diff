@@ -1,0 +1,29 @@
+diff --git a/Makefile b/Makefile
+index 7a18274..b48578c 100644
+--- a/Makefile
++++ b/Makefile
+@@ -44,7 +44,7 @@ slstatus: slstatus.o $(COM:=.o) $(REQ:=.o)
+ 	$(CC) -o $@ $(LDFLAGS) $(COM:=.o) $(REQ:=.o) slstatus.o $(LDLIBS)
+ 
+ clean:
+-	rm -f slstatus slstatus.o $(COM:=.o) $(REQ:=.o) slstatus-${VERSION}.tar.gz
++	rm -f slstatus slstatus.o $(COM:=.o) $(REQ:=.o) slstatus-${VERSION}.tar.gz config.h
+ 
+ dist:
+ 	rm -rf "slstatus-$(VERSION)"
+diff --git a/config.def.h b/config.def.h
+index 100093e..130a14e 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -66,5 +66,10 @@ static const char unknown_str[] = "n/a";
+  */
+ static const struct arg args[] = {
+ 	/* function format          argument */
+-	{ datetime, "%s",           "%F %T" },
++	{ disk_free, "DISC(/) %s | ", "/"  },
++	{ ram_free, "RAM %s | ",      NULL  },
++	{ cpu_perc, "CPU %s% | ",     NULL  },
++	{ run_command, "VOL %s% | ",  "pactl get-sink-volume @DEFAULT_SINK@ | grep -oP '\\d+(?=%)' | head -1"   },
++	{ wifi_perc, "WIFI %s% | ",   "wlp7s0"  },
++	{ datetime, "%s",             "%F %T" },
+ };
