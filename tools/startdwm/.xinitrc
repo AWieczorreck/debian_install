@@ -1,7 +1,9 @@
 start_systray() {
-    pkill -x ckb-next 2>/dev/null
+    pkill -x ckb-next 2> /dev/null
+    pkill -x snixembed 2> /dev/null
     sleep 0.3
     ckb-next --background &
+    snixembed --fork &
 }
 
 start_apps() {
@@ -9,7 +11,6 @@ start_apps() {
     lxpolkit &
     numlockx on
     slstatus &
-    snixembed --fork &
 }
 
 init_ssh_gpg() {
