@@ -4,28 +4,33 @@ index 15db421..ac3b5cc 100644
 +++ b/Makefile
 @@ -24,7 +24,7 @@ st: $(OBJ)
  	$(CC) -o $@ $(OBJ) $(STLDFLAGS)
-
+ 
  clean:
 -	rm -f st $(OBJ) st-$(VERSION).tar.gz
 +	rm -f st $(OBJ) st-$(VERSION).tar.gz config.h
-
+ 
  dist: clean
  	mkdir -p st-$(VERSION)
 diff --git a/config.def.h b/config.def.h
-index 2cd740a..00123aa 100644
+index 2cd740a..0897f06 100644
 --- a/config.def.h
 +++ b/config.def.h
-@@ -5,7 +5,7 @@
+@@ -5,7 +5,12 @@
   *
   * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
   */
 -static char *font = "Liberation Mono:pixelsize=12:antialias=true:autohint=true";
 +static char *font = "Ttyp0 OTB:pixelsize=18:style=Regular";
++/* Spare fonts */
++static char *font2[] = {
++	"Hack Nerd Font Mono:pixelsize=11:antialias=true:autohint=true",
++};
++
  static int borderpx = 2;
-
+ 
  /*
-@@ -95,53 +95,54 @@ unsigned int tabspaces = 8;
-
+@@ -95,53 +100,54 @@ unsigned int tabspaces = 8;
+ 
  /* Terminal colors (16 first used in escape sequence) */
  static const char *colorname[] = {
 -	/* 8 normal colors */
@@ -92,7 +97,7 @@ index 2cd740a..00123aa 100644
  unsigned int defaultcs = 256;
 -static unsigned int defaultrcs = 257;
 +unsigned int defaultrcs = 257;
-
+ 
  /*
 - * Default shape of cursor
 - * 2: Block ("█")
@@ -114,10 +119,10 @@ index 2cd740a..00123aa 100644
 -static unsigned int cursorshape = 2;
 +static unsigned int cursorstyle = 5;
 +static Rune stcursor = 0x2603; /* snowman ("☃") */
-
+ 
  /*
   * Default columns and rows numbers
-@@ -176,6 +177,8 @@ static uint forcemousemod = ShiftMask;
+@@ -176,6 +182,8 @@ static uint forcemousemod = ShiftMask;
   */
  static MouseShortcut mshortcuts[] = {
  	/* mask                 button   function        argument       release */
@@ -126,10 +131,10 @@ index 2cd740a..00123aa 100644
  	{ XK_ANY_MOD,           Button2, selpaste,       {.i = 0},      1 },
  	{ ShiftMask,            Button4, ttysend,        {.s = "\033[5;2~"} },
  	{ XK_ANY_MOD,           Button4, ttysend,        {.s = "\031"} },
-@@ -187,6 +190,10 @@ static MouseShortcut mshortcuts[] = {
+@@ -187,6 +195,10 @@ static MouseShortcut mshortcuts[] = {
  #define MODKEY Mod1Mask
  #define TERMMOD (ControlMask|ShiftMask)
-
+ 
 +static char *fzfcmd[] = { "/bin/sh", "-c",
 +    "cat > /tmp/st-screen && st -e sh -c 'fzf < /tmp/st-screen'",
 +    "externalpipe", NULL };
@@ -137,7 +142,7 @@ index 2cd740a..00123aa 100644
  static Shortcut shortcuts[] = {
  	/* mask                 keysym          function        argument */
  	{ XK_ANY_MOD,           XK_Break,       sendbreak,      {.i =  0} },
-@@ -201,6 +208,9 @@ static Shortcut shortcuts[] = {
+@@ -201,6 +213,9 @@ static Shortcut shortcuts[] = {
  	{ TERMMOD,              XK_Y,           selpaste,       {.i =  0} },
  	{ ShiftMask,            XK_Insert,      selpaste,       {.i =  0} },
  	{ TERMMOD,              XK_Num_Lock,    numlock,        {.i =  0} },
@@ -145,9 +150,9 @@ index 2cd740a..00123aa 100644
 +	{ ShiftMask,            XK_Page_Down,   kscrolldown,    {.i = -1} },
 +	{ TERMMOD,              XK_F,           externalpipe,   {.v = fzfcmd} },
  };
-
+ 
  /*
-@@ -278,7 +288,7 @@ static Key key[] = {
+@@ -278,7 +293,7 @@ static Key key[] = {
  	{ XK_KP_Delete,     ControlMask,    "\033[3;5~",    +1,    0},
  	{ XK_KP_Delete,     ShiftMask,      "\033[2K",      -1,    0},
  	{ XK_KP_Delete,     ShiftMask,      "\033[3;2~",    +1,    0},
@@ -156,7 +161,7 @@ index 2cd740a..00123aa 100644
  	{ XK_KP_Delete,     XK_ANY_MOD,     "\033[3~",      +1,    0},
  	{ XK_KP_Multiply,   XK_ANY_MOD,     "\033Oj",       +2,    0},
  	{ XK_KP_Add,        XK_ANY_MOD,     "\033Ok",       +2,    0},
-@@ -346,7 +356,7 @@ static Key key[] = {
+@@ -346,7 +361,7 @@ static Key key[] = {
  	{ XK_Delete,        ControlMask,    "\033[3;5~",    +1,    0},
  	{ XK_Delete,        ShiftMask,      "\033[2K",      -1,    0},
  	{ XK_Delete,        ShiftMask,      "\033[3;2~",    +1,    0},
@@ -174,7 +179,7 @@ index 6f40e35..1d5619e 100644
  #define STR_BUF_SIZ   ESC_BUF_SIZ
  #define STR_ARG_SIZ   ESC_ARG_SIZ
 +#define HISTSIZE      2000
-
+ 
  /* macros */
  #define IS_SET(flag)		((term.mode & (flag)) != 0)
 @@ -42,6 +43,10 @@
@@ -185,7 +190,7 @@ index 6f40e35..1d5619e 100644
 + 				term.scr + HISTSIZE + 1) % HISTSIZE] : \
 + 				term.line[(y) - term.scr])
 +#define TLINE_HIST(y)           ((y) <= HISTSIZE-term.row+2 ? term.hist[(y)] : term.line[(y-HISTSIZE+term.row-3)])
-
+ 
  enum term_mode {
  	MODE_WRAP        = 1 << 0,
 @@ -115,6 +120,9 @@ typedef struct {
@@ -212,11 +217,11 @@ index 6f40e35..1d5619e 100644
 @@ -409,10 +417,24 @@ tlinelen(int y)
  {
  	int i = term.col;
-
+ 
 -	if (term.line[y][i - 1].mode & ATTR_WRAP)
 +	if (TLINE(y)[i - 1].mode & ATTR_WRAP)
  		return i;
-
+ 
 -	while (i > 0 && term.line[y][i - 1].u == ' ')
 +	while (i > 0 && TLINE(y)[i - 1].u == ' ')
 +		--i;
@@ -234,7 +239,7 @@ index 6f40e35..1d5619e 100644
 +
 +	while (i > 0 && TLINE_HIST(y)[i - 1].u == ' ')
  		--i;
-
+ 
  	return i;
 @@ -521,7 +543,7 @@ selsnap(int *x, int *y, int direction)
  		 * Snap around if the word wraps around at the end or
@@ -253,10 +258,10 @@ index 6f40e35..1d5619e 100644
 +				if (!(TLINE(yt)[xt].mode & ATTR_WRAP))
  					break;
  			}
-
+ 
  			if (newx >= tlinelen(newy))
  				break;
-
+ 
 -			gp = &term.line[newy][newx];
 +			gp = &TLINE(newy)[newx];
  			delim = ISDELIM(gp->u);
@@ -281,7 +286,7 @@ index 6f40e35..1d5619e 100644
  				}
 @@ -602,13 +624,13 @@ getsel(void)
  		}
-
+ 
  		if (sel.type == SEL_RECTANGULAR) {
 -			gp = &term.line[y][sel.nb.x];
 +			gp = &TLINE(y)[sel.nb.x];
@@ -295,11 +300,11 @@ index 6f40e35..1d5619e 100644
 +		last = &TLINE(y)[MIN(lastx, linelen-1)];
  		while (last >= gp && last->u == ' ')
  			--last;
-
+ 
 @@ -718,8 +740,14 @@ sigchld(int a)
  	if ((p = waitpid(pid, &stat, WNOHANG)) < 0)
  		die("waiting for pid %hd failed: %s\n", pid, strerror(errno));
-
+ 
 -	if (pid != p)
 +	if (pid != p) {
 +		if (p == 0 && wait(&stat) < 0)
@@ -309,7 +314,7 @@ index 6f40e35..1d5619e 100644
 +		signal(SIGCHLD, sigchld);
  		return;
 +	}
-
+ 
  	if (WIFEXITED(stat) && WEXITSTATUS(stat))
  		die("child exited with status %d\n", WEXITSTATUS(stat));
 @@ -803,7 +831,7 @@ ttynew(const char *line, char *cmd, const char *out, char **args)
@@ -328,13 +333,13 @@ index 6f40e35..1d5619e 100644
 +	Arg arg = (Arg) { .i = term.scr };
 +
 +	kscrolldown(&arg);
-
+ 
  	if (may_echo && IS_SET(MODE_ECHO))
  		twrite(s, n, 1);
 @@ -1046,6 +1077,11 @@ tnew(int col, int row)
  	treset();
  }
-
+ 
 +int tisaltscr(void)
 +{
 +	return IS_SET(MODE_ALTSCREEN);
@@ -345,7 +350,7 @@ index 6f40e35..1d5619e 100644
  {
 @@ -1058,13 +1094,53 @@ tswapscreen(void)
  }
-
+ 
  void
 -tscrolldown(int orig, int n)
 +kscrolldown(const Arg* a)
@@ -385,9 +390,9 @@ index 6f40e35..1d5619e 100644
  {
  	int i;
  	Line temp;
-
+ 
  	LIMIT(n, 0, term.bot-orig+1);
-
+ 
 +	if (copyhist) {
 +		term.histi = (term.histi - 1 + HISTSIZE) % HISTSIZE;
 +		temp = term.hist[term.histi];
@@ -397,25 +402,25 @@ index 6f40e35..1d5619e 100644
 +
  	tsetdirt(orig, term.bot-n);
  	tclearregion(0, term.bot-n+1, term.col-1, term.bot);
-
+ 
 @@ -1074,17 +1150,28 @@ tscrolldown(int orig, int n)
  		term.line[i-n] = temp;
  	}
-
+ 
 -	selscroll(orig, n);
 +	if (term.scr == 0)
 +		selscroll(orig, n);
  }
-
+ 
  void
 -tscrollup(int orig, int n)
 +tscrollup(int orig, int n, int copyhist)
  {
  	int i;
  	Line temp;
-
+ 
  	LIMIT(n, 0, term.bot-orig+1);
-
+ 
 +	if (copyhist) {
 +		term.histi = (term.histi + 1) % HISTSIZE;
 +		temp = term.hist[term.histi];
@@ -428,20 +433,20 @@ index 6f40e35..1d5619e 100644
 +
  	tclearregion(0, orig, term.col-1, orig+n-1);
  	tsetdirt(orig+n, term.bot);
-
+ 
 @@ -1094,7 +1181,8 @@ tscrollup(int orig, int n)
  		term.line[i+n] = temp;
  	}
-
+ 
 -	selscroll(orig, -n);
 +	if (term.scr == 0)
 +		selscroll(orig, -n);
  }
-
+ 
  void
 @@ -1123,7 +1211,7 @@ tnewline(int first_col)
  	int y = term.c.y;
-
+ 
  	if (y == term.bot) {
 -		tscrollup(term.top, 1);
 +		tscrollup(term.top, 1, 1);
@@ -455,7 +460,7 @@ index 6f40e35..1d5619e 100644
 -		tscrolldown(term.c.y, n);
 +		tscrolldown(term.c.y, n, 0);
  }
-
+ 
  void
  tdeleteline(int n)
  {
@@ -463,7 +468,7 @@ index 6f40e35..1d5619e 100644
 -		tscrollup(term.c.y, n);
 +		tscrollup(term.c.y, n, 0);
  }
-
+ 
  int32_t
 @@ -1742,11 +1830,11 @@ csihandle(void)
  	case 'S': /* SU -- Scroll <n> line up */
@@ -512,7 +517,7 @@ index 6f40e35..1d5619e 100644
 +		}
  	}
  }
-
+ 
 @@ -1904,7 +2019,7 @@ strhandle(void)
  		switch (par) {
  		case 0:
@@ -546,7 +551,7 @@ index 6f40e35..1d5619e 100644
 @@ -2020,6 +2137,61 @@ strparse(void)
  	}
  }
-
+ 
 +void
 +externalpipe(const Arg *arg)
 +{
@@ -643,7 +648,7 @@ index 6f40e35..1d5619e 100644
 @@ -2609,6 +2782,14 @@ tresize(int col, int row)
  	term.dirty = xrealloc(term.dirty, row * sizeof(*term.dirty));
  	term.tabs = xrealloc(term.tabs, col * sizeof(*term.tabs));
-
+ 
 +	for (i = 0; i < HISTSIZE; i++) {
 +		term.hist[i] = xrealloc(term.hist[i], col * sizeof(Glyph));
 +		for (j = mincol; j < col; j++) {
@@ -662,20 +667,20 @@ index 6f40e35..1d5619e 100644
 -	xsettitle(NULL);
 +	xsettitle(NULL, 0);
  }
-
+ 
  void
 @@ -2667,7 +2848,7 @@ drawregion(int x1, int y1, int x2, int y2)
  			continue;
-
+ 
  		term.dirty[y] = 0;
 -		xdrawline(term.line[y], x1, y, x2);
 +		xdrawline(TLINE(y), x1, y, x2);
  	}
  }
-
+ 
 @@ -2688,8 +2869,9 @@ draw(void)
  		cx--;
-
+ 
  	drawregion(0, 0, term.col, term.row);
 -	xdrawcursor(cx, term.c.y, term.line[term.c.y][cx],
 -			term.ocx, term.ocy, term.line[term.ocy][term.ocx]);
@@ -692,7 +697,7 @@ index fd3b0d8..7cf32e5 100644
 @@ -81,12 +81,16 @@ void die(const char *, ...);
  void redraw(void);
  void draw(void);
-
+ 
 +void kscrolldown(const Arg *);
 +void kscrollup(const Arg *);
 +void externalpipe(const Arg *);
@@ -700,7 +705,7 @@ index fd3b0d8..7cf32e5 100644
  void printsel(const Arg *);
  void sendbreak(const Arg *);
  void toggleprinter(const Arg *);
-
+ 
  int tattrset(int);
 +int tisaltscr(void);
  void tnew(int, int);
@@ -744,7 +749,7 @@ index 6de960d..2a40aa0 100644
  void xsetmode(int, unsigned int);
  void xsetpointermotion(int);
 diff --git a/x.c b/x.c
-index d73152b..a7f4a59 100644
+index d73152b..994407a 100644
 --- a/x.c
 +++ b/x.c
 @@ -34,6 +34,7 @@ typedef struct {
@@ -753,36 +758,53 @@ index d73152b..a7f4a59 100644
  	uint  release;
 +	int  altscrn;  /* 0: don't care, -1: not alt screen, 1: alt screen */
  } MouseShortcut;
-
+ 
  typedef struct {
 @@ -63,6 +64,9 @@ static void ttysend(const Arg *);
  /* config.h for applying patches and the configuration. */
  #include "config.h"
-
+ 
 +/* size of title stack */
 +#define TITLESTACKSIZE 8
 +
  /* XEMBED messages */
  #define XEMBED_FOCUS_IN  4
  #define XEMBED_FOCUS_OUT 5
-@@ -220,6 +224,8 @@ static DC dc;
+@@ -157,6 +161,8 @@ static void xhints(void);
+ static int xloadcolor(int, const char *, Color *);
+ static int xloadfont(Font *, FcPattern *);
+ static void xloadfonts(const char *, double);
++static int xloadsparefont(FcPattern *, int);
++static void xloadsparefonts(void);
+ static void xunloadfont(Font *);
+ static void xunloadfonts(void);
+ static void xsetenv(void);
+@@ -220,6 +226,8 @@ static DC dc;
  static XWindow xw;
  static XSelection xsel;
  static TermWindow win;
 +static int tstki; /* title stack index */
 +static char *titlestack[TITLESTACKSIZE]; /* title stack */
-
+ 
  /* Font Ring Cache */
  enum {
-@@ -253,6 +259,7 @@ static char *opt_name  = NULL;
+@@ -253,6 +261,7 @@ static char *opt_name  = NULL;
  static char *opt_title = NULL;
-
+ 
  static uint buttons; /* bit field of pressed buttons */
 +static int cursorblinks = 0;
-
+ 
  void
  clipcopy(const Arg *dummy)
-@@ -455,6 +462,7 @@ mouseaction(XEvent *e, uint release)
+@@ -306,6 +315,7 @@ zoomabs(const Arg *arg)
+ {
+ 	xunloadfonts();
+ 	xloadfonts(usedfont, arg->f);
++	xloadsparefonts();
+ 	cresize(0, 0);
+ 	redraw();
+ 	xhints();
+@@ -455,6 +465,7 @@ mouseaction(XEvent *e, uint release)
  	for (ms = mshortcuts; ms < mshortcuts + LEN(mshortcuts); ms++) {
  		if (ms->release == release &&
  		    ms->button == e->xbutton.button &&
@@ -790,7 +812,119 @@ index d73152b..a7f4a59 100644
  		    (match(ms->mod, state) ||  /* exact or forced */
  		     match(ms->mod, state & ~forcemousemod))) {
  			ms->func(&(ms->arg));
-@@ -1561,29 +1569,44 @@ xdrawcursor(int cx, int cy, Glyph g, int ox, int oy, Glyph og)
+@@ -1050,6 +1061,101 @@ xloadfonts(const char *fontstr, double fontsize)
+ 	FcPatternDestroy(pattern);
+ }
+ 
++int
++xloadsparefont(FcPattern *pattern, int flags)
++{
++	FcPattern *match;
++	FcResult result;
++
++	match = FcFontMatch(NULL, pattern, &result);
++	if (!match) {
++		return 1;
++	}
++
++	if (!(frc[frclen].font = XftFontOpenPattern(xw.dpy, match))) {
++		FcPatternDestroy(match);
++		return 1;
++	}
++
++	frc[frclen].flags = flags;
++	/* Believe U+0000 glyph will present in each default font */
++	frc[frclen].unicodep = 0;
++	frclen++;
++
++	return 0;
++}
++
++void
++xloadsparefonts(void)
++{
++	FcPattern *pattern;
++	double sizeshift, fontval;
++	int fc;
++	char **fp;
++
++	if (frclen != 0)
++		die("can't embed spare fonts. cache isn't empty");
++
++	/* Calculate count of spare fonts */
++	fc = sizeof(font2) / sizeof(*font2);
++	if (fc == 0)
++		return;
++
++	/* Allocate memory for cache entries. */
++	if (frccap < 4 * fc) {
++		frccap += 4 * fc - frccap;
++		frc = xrealloc(frc, frccap * sizeof(Fontcache));
++	}
++
++	for (fp = font2; fp - font2 < fc; ++fp) {
++
++		if (**fp == '-')
++			pattern = XftXlfdParse(*fp, False, False);
++		else
++			pattern = FcNameParse((FcChar8 *)*fp);
++
++		if (!pattern)
++			die("can't open spare font %s\n", *fp);
++
++		if (defaultfontsize > 0) {
++			sizeshift = usedfontsize - defaultfontsize;
++			if (sizeshift != 0 &&
++					FcPatternGetDouble(pattern, FC_PIXEL_SIZE, 0, &fontval) ==
++					FcResultMatch) {
++				fontval += sizeshift;
++				FcPatternDel(pattern, FC_PIXEL_SIZE);
++				FcPatternDel(pattern, FC_SIZE);
++				FcPatternAddDouble(pattern, FC_PIXEL_SIZE, fontval);
++			}
++		}
++
++		FcPatternAddBool(pattern, FC_SCALABLE, 1);
++
++		FcConfigSubstitute(NULL, pattern, FcMatchPattern);
++		XftDefaultSubstitute(xw.dpy, xw.scr, pattern);
++
++		if (xloadsparefont(pattern, FRC_NORMAL))
++			die("can't open spare font %s\n", *fp);
++
++		FcPatternDel(pattern, FC_SLANT);
++		FcPatternAddInteger(pattern, FC_SLANT, FC_SLANT_ITALIC);
++		if (xloadsparefont(pattern, FRC_ITALIC))
++			die("can't open spare font %s\n", *fp);
++
++		FcPatternDel(pattern, FC_WEIGHT);
++		FcPatternAddInteger(pattern, FC_WEIGHT, FC_WEIGHT_BOLD);
++		if (xloadsparefont(pattern, FRC_ITALICBOLD))
++			die("can't open spare font %s\n", *fp);
++
++		FcPatternDel(pattern, FC_SLANT);
++		FcPatternAddInteger(pattern, FC_SLANT, FC_SLANT_ROMAN);
++		if (xloadsparefont(pattern, FRC_BOLD))
++			die("can't open spare font %s\n", *fp);
++
++		FcPatternDestroy(pattern);
++	}
++}
++
+ void
+ xunloadfont(Font *f)
+ {
+@@ -1147,6 +1253,9 @@ xinit(int cols, int rows)
+ 	usedfont = (opt_font == NULL)? font : opt_font;
+ 	xloadfonts(usedfont, 0);
+ 
++	/* spare fonts */
++	xloadsparefonts();
++
+ 	/* colors */
+ 	xw.cmap = XDefaultColormap(xw.dpy, xw.scr);
+ 	xloadcols();
+@@ -1561,29 +1670,44 @@ xdrawcursor(int cx, int cy, Glyph g, int ox, int oy, Glyph og)
  	/* draw the new one */
  	if (IS_SET(MODE_FOCUSED)) {
  		switch (win.cursor) {
@@ -844,9 +978,9 @@ index d73152b..a7f4a59 100644
  		}
  	} else {
  		XftDrawRect(xw.draw, &drawcol,
-@@ -1632,10 +1655,30 @@ xseticontitle(char *p)
+@@ -1632,10 +1756,30 @@ xseticontitle(char *p)
  }
-
+ 
  void
 -xsettitle(char *p)
 +xfreetitlestack(void)
@@ -875,13 +1009,13 @@ index d73152b..a7f4a59 100644
 +		titlestack[tstki] = NULL;
 +		p = opt_title;
 +	}
-
+ 
  	if (p[0] == '\0')
  		p = opt_title;
-@@ -1648,6 +1691,16 @@ xsettitle(char *p)
+@@ -1648,6 +1792,16 @@ xsettitle(char *p)
  	XFree(prop.value);
  }
-
+ 
 +void
 +xpushtitle(void)
 +{
@@ -895,7 +1029,7 @@ index d73152b..a7f4a59 100644
  int
  xstartdraw(void)
  {
-@@ -1746,9 +1799,12 @@ xsetmode(int set, unsigned int flags)
+@@ -1746,9 +1900,12 @@ xsetmode(int set, unsigned int flags)
  int
  xsetcursor(int cursor)
  {
@@ -908,8 +1042,8 @@ index d73152b..a7f4a59 100644
 +	               win.cursor == 7;
  	return 0;
  }
-
-@@ -1995,6 +2051,10 @@ run(void)
+ 
+@@ -1995,6 +2152,10 @@ run(void)
  		if (FD_ISSET(ttyfd, &rfd) || xev) {
  			if (!drawing) {
  				trigger = now;
@@ -920,8 +1054,8 @@ index d73152b..a7f4a59 100644
  				drawing = 1;
  			}
  			timeout = (maxlatency - TIMEDIFF(now, trigger)) \
-@@ -2005,7 +2065,7 @@ run(void)
-
+@@ -2005,7 +2166,7 @@ run(void)
+ 
  		/* idle detected or maxlatency exhausted -> draw */
  		timeout = -1;
 -		if (blinktimeout && tattrset(ATTR_BLINK)) {
@@ -929,12 +1063,12 @@ index d73152b..a7f4a59 100644
  			timeout = blinktimeout - TIMEDIFF(now, lastblink);
  			if (timeout <= 0) {
  				if (-timeout > blinktimeout) /* start visible */
-@@ -2041,7 +2101,7 @@ main(int argc, char *argv[])
+@@ -2041,7 +2202,7 @@ main(int argc, char *argv[])
  {
  	xw.l = xw.t = 0;
  	xw.isfixed = False;
 -	xsetcursor(cursorshape);
 +	xsetcursor(cursorstyle);
-
+ 
  	ARGBEGIN {
  	case 'a':
