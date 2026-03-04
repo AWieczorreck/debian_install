@@ -12,7 +12,7 @@ index 15db421..ac3b5cc 100644
  dist: clean
  	mkdir -p st-$(VERSION)
 diff --git a/config.def.h b/config.def.h
-index 2cd740a..1408294 100644
+index 2cd740a..00123aa 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -5,7 +5,7 @@
@@ -24,7 +24,7 @@ index 2cd740a..1408294 100644
  static int borderpx = 2;
 
  /*
-@@ -95,44 +95,38 @@ unsigned int tabspaces = 8;
+@@ -95,53 +95,54 @@ unsigned int tabspaces = 8;
 
  /* Terminal colors (16 first used in escape sequence) */
  static const char *colorname[] = {
@@ -94,8 +94,30 @@ index 2cd740a..1408294 100644
 +unsigned int defaultrcs = 257;
 
  /*
-  * Default shape of cursor
-@@ -176,6 +170,8 @@ static uint forcemousemod = ShiftMask;
+- * Default shape of cursor
+- * 2: Block ("█")
+- * 4: Underline ("_")
+- * 6: Bar ("|")
+- * 7: Snowman ("☃")
++ * https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h4-Functions-using-CSI-_-ordered-by-the-final-character-lparen-s-rparen:CSI-Ps-SP-q.1D81
++ * Default style of cursor
++ * 0: blinking block
++ * 1: blinking block (default)
++ * 2: steady block ("█")
++ * 3: blinking underline
++ * 4: steady underline ("_")
++ * 5: blinking bar
++ * 6: steady bar ("|")
++ * 7: blinking st cursor
++ * 8: steady st cursor
+  */
+-static unsigned int cursorshape = 2;
++static unsigned int cursorstyle = 5;
++static Rune stcursor = 0x2603; /* snowman ("☃") */
+
+ /*
+  * Default columns and rows numbers
+@@ -176,6 +177,8 @@ static uint forcemousemod = ShiftMask;
   */
  static MouseShortcut mshortcuts[] = {
  	/* mask                 button   function        argument       release */
@@ -104,7 +126,7 @@ index 2cd740a..1408294 100644
  	{ XK_ANY_MOD,           Button2, selpaste,       {.i = 0},      1 },
  	{ ShiftMask,            Button4, ttysend,        {.s = "\033[5;2~"} },
  	{ XK_ANY_MOD,           Button4, ttysend,        {.s = "\031"} },
-@@ -187,6 +183,10 @@ static MouseShortcut mshortcuts[] = {
+@@ -187,6 +190,10 @@ static MouseShortcut mshortcuts[] = {
  #define MODKEY Mod1Mask
  #define TERMMOD (ControlMask|ShiftMask)
 
@@ -115,7 +137,7 @@ index 2cd740a..1408294 100644
  static Shortcut shortcuts[] = {
  	/* mask                 keysym          function        argument */
  	{ XK_ANY_MOD,           XK_Break,       sendbreak,      {.i =  0} },
-@@ -201,6 +201,9 @@ static Shortcut shortcuts[] = {
+@@ -201,6 +208,9 @@ static Shortcut shortcuts[] = {
  	{ TERMMOD,              XK_Y,           selpaste,       {.i =  0} },
  	{ ShiftMask,            XK_Insert,      selpaste,       {.i =  0} },
  	{ TERMMOD,              XK_Num_Lock,    numlock,        {.i =  0} },
@@ -125,16 +147,16 @@ index 2cd740a..1408294 100644
  };
 
  /*
-@@ -278,7 +281,7 @@ static Key key[] = {
+@@ -278,7 +288,7 @@ static Key key[] = {
  	{ XK_KP_Delete,     ControlMask,    "\033[3;5~",    +1,    0},
  	{ XK_KP_Delete,     ShiftMask,      "\033[2K",      -1,    0},
  	{ XK_KP_Delete,     ShiftMask,      "\033[3;2~",    +1,    0},
 -	{ XK_KP_Delete,     XK_ANY_MOD,     "\033[P",       -1,    0},
-+	{ XK_KP_Delete,     XK_ANY_MOD,     "\033[3~",       -1,    0},
++	{ XK_KP_Delete,     XK_ANY_MOD,     "\033[3~",      -1,    0},
  	{ XK_KP_Delete,     XK_ANY_MOD,     "\033[3~",      +1,    0},
  	{ XK_KP_Multiply,   XK_ANY_MOD,     "\033Oj",       +2,    0},
  	{ XK_KP_Add,        XK_ANY_MOD,     "\033Ok",       +2,    0},
-@@ -346,7 +349,7 @@ static Key key[] = {
+@@ -346,7 +356,7 @@ static Key key[] = {
  	{ XK_Delete,        ControlMask,    "\033[3;5~",    +1,    0},
  	{ XK_Delete,        ShiftMask,      "\033[2K",      -1,    0},
  	{ XK_Delete,        ShiftMask,      "\033[3;2~",    +1,    0},
@@ -722,7 +744,7 @@ index 6de960d..2a40aa0 100644
  void xsetmode(int, unsigned int);
  void xsetpointermotion(int);
 diff --git a/x.c b/x.c
-index d73152b..5f561af 100644
+index d73152b..a7f4a59 100644
 --- a/x.c
 +++ b/x.c
 @@ -34,6 +34,7 @@ typedef struct {
@@ -752,7 +774,15 @@ index d73152b..5f561af 100644
 
  /* Font Ring Cache */
  enum {
-@@ -455,6 +461,7 @@ mouseaction(XEvent *e, uint release)
+@@ -253,6 +259,7 @@ static char *opt_name  = NULL;
+ static char *opt_title = NULL;
+
+ static uint buttons; /* bit field of pressed buttons */
++static int cursorblinks = 0;
+
+ void
+ clipcopy(const Arg *dummy)
+@@ -455,6 +462,7 @@ mouseaction(XEvent *e, uint release)
  	for (ms = mshortcuts; ms < mshortcuts + LEN(mshortcuts); ms++) {
  		if (ms->release == release &&
  		    ms->button == e->xbutton.button &&
@@ -760,7 +790,61 @@ index d73152b..5f561af 100644
  		    (match(ms->mod, state) ||  /* exact or forced */
  		     match(ms->mod, state & ~forcemousemod))) {
  			ms->func(&(ms->arg));
-@@ -1632,10 +1639,30 @@ xseticontitle(char *p)
+@@ -1561,29 +1569,44 @@ xdrawcursor(int cx, int cy, Glyph g, int ox, int oy, Glyph og)
+ 	/* draw the new one */
+ 	if (IS_SET(MODE_FOCUSED)) {
+ 		switch (win.cursor) {
+-		case 7: /* st extension */
+-			g.u = 0x2603; /* snowman (U+2603) */
++		default:
++		case 0: /* blinking block */
++		case 1: /* blinking block (default) */
++			if (IS_SET(MODE_BLINK))
++				break;
+ 			/* FALLTHROUGH */
+-		case 0: /* Blinking Block */
+-		case 1: /* Blinking Block (Default) */
+-		case 2: /* Steady Block */
++		case 2: /* steady block */
+ 			xdrawglyph(g, cx, cy);
+ 			break;
+-		case 3: /* Blinking Underline */
+-		case 4: /* Steady Underline */
++		case 3: /* blinking underline */
++			if (IS_SET(MODE_BLINK))
++				break;
++			/* FALLTHROUGH */
++		case 4: /* steady underline */
+ 			XftDrawRect(xw.draw, &drawcol,
+ 					borderpx + cx * win.cw,
+ 					borderpx + (cy + 1) * win.ch - \
+ 						cursorthickness,
+ 					win.cw, cursorthickness);
+ 			break;
+-		case 5: /* Blinking bar */
+-		case 6: /* Steady bar */
++		case 5: /* blinking bar */
++			if (IS_SET(MODE_BLINK))
++				break;
++			/* FALLTHROUGH */
++		case 6: /* steady bar */
+ 			XftDrawRect(xw.draw, &drawcol,
+ 					borderpx + cx * win.cw,
+ 					borderpx + cy * win.ch,
+ 					cursorthickness, win.ch);
+ 			break;
++		case 7: /* blinking st cursor */
++			if (IS_SET(MODE_BLINK))
++				break;
++			/* FALLTHROUGH */
++		case 8: /* steady st cursor */
++			g.u = stcursor;
++			xdrawglyph(g, cx, cy);
++			break;
+ 		}
+ 	} else {
+ 		XftDrawRect(xw.draw, &drawcol,
+@@ -1632,10 +1655,30 @@ xseticontitle(char *p)
  }
 
  void
@@ -779,7 +863,7 @@ index d73152b..5f561af 100644
 +xsettitle(char *p, int pop)
 +{
 + 	XTextProperty prop;
-+
++ 
 +	free(titlestack[tstki]);
 +	if (pop) {
 +		titlestack[tstki] = NULL;
@@ -794,7 +878,7 @@ index d73152b..5f561af 100644
 
  	if (p[0] == '\0')
  		p = opt_title;
-@@ -1648,6 +1675,16 @@ xsettitle(char *p)
+@@ -1648,6 +1691,16 @@ xsettitle(char *p)
  	XFree(prop.value);
  }
 
@@ -811,3 +895,46 @@ index d73152b..5f561af 100644
  int
  xstartdraw(void)
  {
+@@ -1746,9 +1799,12 @@ xsetmode(int set, unsigned int flags)
+ int
+ xsetcursor(int cursor)
+ {
+-	if (!BETWEEN(cursor, 0, 7)) /* 7: st extension */
++	if (!BETWEEN(cursor, 0, 8)) /* 7-8: st extensions */
+ 		return 1;
+ 	win.cursor = cursor;
++	cursorblinks = win.cursor == 0 || win.cursor == 1 ||
++	               win.cursor == 3 || win.cursor == 5 ||
++	               win.cursor == 7;
+ 	return 0;
+ }
+
+@@ -1995,6 +2051,10 @@ run(void)
+ 		if (FD_ISSET(ttyfd, &rfd) || xev) {
+ 			if (!drawing) {
+ 				trigger = now;
++				if (IS_SET(MODE_BLINK)) {
++					win.mode ^= MODE_BLINK;
++				}
++				lastblink = now;
+ 				drawing = 1;
+ 			}
+ 			timeout = (maxlatency - TIMEDIFF(now, trigger)) \
+@@ -2005,7 +2065,7 @@ run(void)
+
+ 		/* idle detected or maxlatency exhausted -> draw */
+ 		timeout = -1;
+-		if (blinktimeout && tattrset(ATTR_BLINK)) {
++		if (blinktimeout && (cursorblinks || tattrset(ATTR_BLINK))) {
+ 			timeout = blinktimeout - TIMEDIFF(now, lastblink);
+ 			if (timeout <= 0) {
+ 				if (-timeout > blinktimeout) /* start visible */
+@@ -2041,7 +2101,7 @@ main(int argc, char *argv[])
+ {
+ 	xw.l = xw.t = 0;
+ 	xw.isfixed = False;
+-	xsetcursor(cursorshape);
++	xsetcursor(cursorstyle);
+
+ 	ARGBEGIN {
+ 	case 'a':
