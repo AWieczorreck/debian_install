@@ -3,6 +3,7 @@ GH_USERNAME=""
 read -p "github username: " GH_USERNAME
 cp ~/repos/debian_install/tools/passmenu /usr/local/bin
 sudo cp ~/repos/debian_install/tools/totpmenu /usr/local/bin
+echo "export QT_QPA_PLATFORMTHEME=qt5ct" >> ~/.profile
 cp ~/repos/debian_install/tools/startdwm/.xinitrc ~
 TOOL=dwm
 git clone https://git.suckless.org/$TOOL ~/repos/$TOOL
