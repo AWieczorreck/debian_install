@@ -1,7 +1,6 @@
 #!/bin/bash
-
 GH_USERNAME=""
-read -p "github username" GH_USERNAME
+read -p "github username: " GH_USERNAME
 cp ~/repos/debian_install/tools/passmenu /usr/local/bin
 sudo cp ~/repos/debian_install/tools/totpmenu /usr/local/bin
 cp ~/repos/debian_install/tools/startdwm/.xinitrc ~
@@ -23,8 +22,8 @@ cd ~/repos/$TOOL && rm -f config.h && patch -i ~/repos/debian_install/$TOOL/$(ec
 git clone https://github.com/$GH_USERNAME/dotfiles ~/repos/dotfiles
 cp -r ~/repos/dotfiles/.gnupg ~
 chmod 700 ~/.gnupg/ && chmod 700 ~/.gnupg/*
-echo "export PASSWORD_STORE_GPG_OPTS='--no-throw-keyids'" >> .bashrc
-printf "%s\n" "export GPG_TTY=\$(tty)" "gpg-connect-agent updatestartuptty /bye > /dev/null" >> .bashrc
+echo "export PASSWORD_STORE_GPG_OPTS='--no-throw-keyids'" >> ~/.bashrc
+printf "%s\n" "export GPG_TTY=\$(tty)" "gpg-connect-agent updatestartuptty /bye > /dev/null" >> ~/.bashrc
 printf "fetch\nquit\n" | script -q -c "gpg --card-edit" /dev/null
 EMAIL=""
 read -p "gpg email: " EMAIL
