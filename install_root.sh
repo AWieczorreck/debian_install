@@ -44,7 +44,7 @@ curl -L -o uw-ttyp0.tar.gz "https://people.mpi-inf.mpg.de/~uwe/misc/uw-ttyp0/uw-
 tar xf uw-ttyp0.tar.gz && cd uw-ttyp0-2.1 && ./configure && make && make install
 rm -rf uw-ttyp0-2.1
 cp ~/debian_install/tools/ckb-next-daemon.service /etc/systemd/system/
-mv debian_install /home/$USERNAME/repos/
+mv ~/debian_install /home/$USERNAME/repos/
 chown -R $USERNAME:$USERNAME /home/$USERNAME/repos/
 systemctl daemon-reload
 systemctl enable ckb-next-daemon
