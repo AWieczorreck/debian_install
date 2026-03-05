@@ -38,3 +38,5 @@ mkdir -p ~/.local/share/fonts/
 curl -L -o Hack.zip https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/Hack.zip
 unzip Hack.zip -d ~/.local/share/fonts/Hack/
 fc-cache -fv
+cd ~/repos/debian_install
+git remote set-url origin git@github.com:$GH_USERNAME/debian_install
