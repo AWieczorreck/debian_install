@@ -35,7 +35,6 @@ make install
 sed -i 's/^# \(en_US.UTF-8\)/\1/' /etc/locale.gen
 sed -i 's/^# \(de_DE.UTF-8\)/\1/' /etc/locale.gen
 locale-gen
-cp tools/ckb-next-daemon.service /etc/systemd/system/
 wget https://gist.githubusercontent.com/archisman-panigrahi/cd571ddea1aa2c5e2b4fa7bcbee7d5df/raw/setup-snixembed-debian.sh && bash setup-snixembed-debian.sh
 echo "RADV_PERFTEST=aco" | tee -a /etc/environment
 sed -i 's/\(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*\)"/\1 amdgpu.dc=1"/' /etc/default/grub
@@ -44,6 +43,8 @@ usermod -a -G gamemode $USERNAME
 curl -L -o uw-ttyp0.tar.gz "https://people.mpi-inf.mpg.de/~uwe/misc/uw-ttyp0/uw-ttyp0-2.1.tar.gz"
 tar xf uw-ttyp0.tar.gz && cd uw-ttyp0-2.1 && ./configure && make && make install
 rm -rf uw-ttyp0-2.1
+cp ~/debian_install/tools/ckb-next-daemon.service /etc/systemd/system/
+mv debian_install /home/$USERNAME/repos/
 chown -R $USERNAME:$USERNAME /home/$USERNAME/repos/
 systemctl daemon-reload
 systemctl enable ckb-next-daemon
