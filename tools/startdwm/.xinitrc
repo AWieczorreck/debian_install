@@ -2,8 +2,8 @@ start_systray() {
     pkill -x ckb-next 2> /dev/null
     pkill -x snixembed 2> /dev/null
     sleep 0.3
-    ckb-next --background &
-    snixembed --fork &
+    ckb-next --background 2> /dev/null &
+    snixembed --fork 2> /dev/null &
 }
 
 start_apps() {
@@ -37,6 +37,8 @@ startdwm() {
             start_systray
             dwm 2> ~/.dwm.log
         else
+            pkill -x ckb-next
+            pkill -x snixembed
             exit 0
         fi
         new_csum=$(sha1sum $(which dwm))
