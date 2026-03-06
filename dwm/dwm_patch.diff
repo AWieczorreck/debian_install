@@ -12,7 +12,7 @@ index ffa69b4..3f26804 100644
  dist: clean
  	mkdir -p dwm-${VERSION}
 diff --git a/config.def.h b/config.def.h
-index 81c3fc0..fae2f6d 100644
+index 81c3fc0..b878f64 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -1,16 +1,25 @@
@@ -48,7 +48,7 @@ index 81c3fc0..fae2f6d 100644
  static const char col_cyan[]        = "#005577";
  static const char *colors[][3]      = {
  	/*               fg         bg         border   */
-@@ -18,23 +27,52 @@ static const char *colors[][3]      = {
+@@ -18,23 +27,51 @@ static const char *colors[][3]      = {
  	[SchemeSel]  = { col_gray4, col_cyan,  col_cyan  },
  };
  
@@ -85,15 +85,14 @@ index 81c3fc0..fae2f6d 100644
 -	/* class      instance    title       tags mask     isfloating   monitor */
 -	{ "Gimp",     NULL,       NULL,       0,            1,           -1 },
 -	{ "Firefox",  NULL,       NULL,       1 << 8,       0,           -1 },
-+	/* class     instance  title           tags mask  isfloating  isterminal  noswallow  monitor */
-+	{ "Gimp",    NULL,     NULL,           0,         1,          0,           0,        -1 },
-+	{ "Firefox", NULL,     NULL,           1 << 8,    0,          0,          -1,        -1 },
-+	{ "st",      NULL,     NULL,           0,         0,          1,           0,        -1 },
-+	{ NULL,      NULL,     "Event Tester", 0,         0,          0,           1,        -1 }, /* xev */
-+	{ "Gimp",    NULL,     NULL,	       0,		  1,	     -1,			},
-+	{ NULL,      "spterm", NULL,           SPTAG(0),  1,	     -1,			},
-+	{ NULL,      "spfm",   NULL,	       SPTAG(1),  1,	     -1,			},
-+	{ "Surf",    "surf",   NULL,	       SPTAG(2),  1,         -1,			},
++	/* class     instance  		title           tags mask  isfloating  isterminal  noswallow  monitor */
++	{ "st",      NULL,       	 NULL,           0,         0,          1,           0,        -1 },
++	{ NULL,      NULL,               "Event Tester", 0,         0,          0,           1,        -1 }, /* xev */
++	{ "Gimp",    NULL,     		 NULL,	         0,	    1,	       -1,			  },
++	{ NULL,      "spterm", 		 NULL,           SPTAG(0),  1,	       -1,			  },
++	{ NULL,      "spfm",   		 NULL,	         SPTAG(1),  1,	       -1,			  },
++	{ "Surf",    "surf",             NULL,	         SPTAG(2),  1,         -1,			  },
++	{ "steam",   NULL,               NULL,	         1 << 8 ,  1,         -1,           1,         -1},
  };
  
  /* layout(s) */
@@ -104,7 +103,7 @@ index 81c3fc0..fae2f6d 100644
  static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen window */
  static const int refreshrate = 120;  /* refresh rate (per second) for client move/resize */
  
-@@ -43,10 +81,11 @@ static const Layout layouts[] = {
+@@ -43,10 +80,11 @@ static const Layout layouts[] = {
  	{ "[]=",      tile },    /* first entry is default */
  	{ "><>",      NULL },    /* no layout function means floating behavior */
  	{ "[M]",      monocle },
@@ -117,7 +116,7 @@ index 81c3fc0..fae2f6d 100644
  #define TAGKEYS(KEY,TAG) \
  	{ MODKEY,                       KEY,      view,           {.ui = 1 << TAG} }, \
  	{ MODKEY|ControlMask,           KEY,      toggleview,     {.ui = 1 << TAG} }, \
-@@ -61,30 +100,49 @@ static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn()
+@@ -61,30 +99,49 @@ static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn()
  static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
  static const char *termcmd[]  = { "st", NULL };
  
@@ -180,7 +179,7 @@ index 81c3fc0..fae2f6d 100644
  	{ MODKEY|ShiftMask,             XK_period, tagmon,         {.i = +1 } },
  	TAGKEYS(                        XK_1,                      0)
  	TAGKEYS(                        XK_2,                      1)
-@@ -95,13 +153,16 @@ static const Key keys[] = {
+@@ -95,13 +152,16 @@ static const Key keys[] = {
  	TAGKEYS(                        XK_7,                      6)
  	TAGKEYS(                        XK_8,                      7)
  	TAGKEYS(                        XK_9,                      8)
@@ -198,7 +197,7 @@ index 81c3fc0..fae2f6d 100644
  	{ ClkLtSymbol,          0,              Button1,        setlayout,      {0} },
  	{ ClkLtSymbol,          0,              Button3,        setlayout,      {.v = &layouts[2]} },
  	{ ClkWinTitle,          0,              Button2,        zoom,           {0} },
-@@ -114,4 +175,3 @@ static const Button buttons[] = {
+@@ -114,4 +174,3 @@ static const Button buttons[] = {
  	{ ClkTagBar,            MODKEY,         Button1,        tag,            {0} },
  	{ ClkTagBar,            MODKEY,         Button3,        toggletag,      {0} },
  };
