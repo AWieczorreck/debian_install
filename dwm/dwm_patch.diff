@@ -91,8 +91,8 @@ index 81c3fc0..fae2f6d 100644
 +	{ "st",      NULL,     NULL,           0,         0,          1,           0,        -1 },
 +	{ NULL,      NULL,     "Event Tester", 0,         0,          0,           1,        -1 }, /* xev */
 +	{ "Gimp",    NULL,     NULL,	       0,		  1,	     -1,			},
-+	{ NULL,      "st",     "spterm",	   SPTAG(0),  1,	     -1,			},
-+	{ NULL,      "st",     "spfm",	       SPTAG(1),  1,	     -1,			},
++	{ NULL,      "spterm", NULL,           SPTAG(0),  1,	     -1,			},
++	{ NULL,      "spfm",   NULL,	       SPTAG(1),  1,	     -1,			},
 +	{ "Surf",    "surf",   NULL,	       SPTAG(2),  1,         -1,			},
  };
  
