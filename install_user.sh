@@ -40,4 +40,3 @@ fc-cache -fv
 cd ~/repos/debian_install
 git remote set-url origin git@github.com:$GH_USERNAME/debian_install
 curl -sSL https://codeberg.org/PassFF/passff-host/releases/download/latest/install_host_app.sh | bash -s -- firefox
-git clone git@github.com:$GH_USERNAME/password-store ~/.password-store
