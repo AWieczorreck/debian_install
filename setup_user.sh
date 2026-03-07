@@ -190,8 +190,6 @@ setup_steam() {
         https://cdn.fastly.steamstatic.com/client/installer/steam.deb
     sudo apt install -y /tmp/steam.deb
     rm /tmp/steam.deb
-    cp "$INSTALL_DIR/configs/steam/config.vdf" \
-        "$HOME/.local/share/Steam/config/"
 }
 
 # ============================================================

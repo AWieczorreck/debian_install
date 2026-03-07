@@ -79,6 +79,7 @@ setup_base() {
     log "Base packages & sudo"
     apt install -y sudo gpg
     usermod -a -G sudo "$USERNAME"
+    mkdir ~/.gnupg
 }
 
 # ============================================================
@@ -87,10 +88,20 @@ setup_base() {
 
 setup_grub() {
     log "GRUB configuration"
-    sed -i 's/\(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*\)"/\1 nosgx"/'  /etc/default/grub
-    sed -i 's/\(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*\)"/\1 amdgpu.dc=1"/' /etc/default/grub
-    echo "GRUB_GFXMODE=1920x1200"       >> /etc/default/grub
-    echo "GRUB_GFXPAYLOAD_LINUX=keep"   >> /etc/default/grub
+
+    # Nur hinzufügen wenn noch nicht vorhanden
+    grep -q "nosgx" /etc/default/grub || \
+        sed -i 's/\(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*\)"/\1 nosgx"/' /etc/default/grub
+
+    grep -q "amdgpu.dc=1" /etc/default/grub || \
+        sed -i 's/\(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*\)"/\1 amdgpu.dc=1"/' /etc/default/grub
+
+    grep -q "GRUB_GFXMODE=1920x1200" /etc/default/grub || \
+        echo "GRUB_GFXMODE=1920x1200" >> /etc/default/grub
+
+    grep -q "GRUB_GFXPAYLOAD_LINUX=keep" /etc/default/grub || \
+        echo "GRUB_GFXPAYLOAD_LINUX=keep" >> /etc/default/grub
+
     update-grub
 }
 
@@ -252,7 +263,7 @@ install_power() {
 
 install_versioned_packages() {
     log "Versioned packages (pinned)"
-    apt install -y \
+    apt install -y --allow-downgrades \
         libelf1t64:amd64=0.192-4 \
         libelf1t64:i386=0.192-4
 }
@@ -264,16 +275,20 @@ install_versioned_packages() {
 setup_amdgpu() {
     log "AMD GPU configuration"
     local conf="/usr/share/X11/xorg.conf.d/10-amdgpu.conf"
-    sed -i '$i\ \ \ \ \ \ \ \ Option "TearFree" "true"'  "$conf"
-    sed -i '$i\ \ \ \ \ \ \ \ Option "SWCursor" "true"'  "$conf"
-    sed -i '$i\ \ \ \ \ \ \ \ Option "DRI" "3"'          "$conf"
-    sed -i '/HotplugDriver/d'                            "$conf"
 
-    echo 'KERNEL=="vga_arbiter", GROUP="video", MODE="0660"' \
-        | tee /etc/udev/rules.d/99-vga-arbiter.rules
+    grep -q 'TearFree'      "$conf" || sed -i '$i\ \ \ \ \ \ \ \ Option "TearFree" "true"' "$conf"
+    grep -q 'SWCursor'      "$conf" || sed -i '$i\ \ \ \ \ \ \ \ Option "SWCursor" "true"' "$conf"
+    grep -q '"DRI" "3"'     "$conf" || sed -i '$i\ \ \ \ \ \ \ \ Option "DRI" "3"'         "$conf"
+    grep -q 'HotplugDriver' "$conf" && sed -i '/HotplugDriver/d'                           "$conf"
+
+    grep -q 'vga_arbiter' /etc/udev/rules.d/99-vga-arbiter.rules 2>/dev/null || \
+        echo 'KERNEL=="vga_arbiter", GROUP="video", MODE="0660"' \
+            | tee /etc/udev/rules.d/99-vga-arbiter.rules
+
     chmod u+s /usr/bin/Xorg
 
-    echo "RADV_PERFTEST=aco" | tee -a /etc/environment
+    grep -q 'RADV_PERFTEST' /etc/environment || \
+        echo "RADV_PERFTEST=aco" | tee -a /etc/environment
 }
 
 # ============================================================
@@ -284,7 +299,7 @@ setup_fonts() {
     log "Bitmap fonts"
     cd /etc/fonts/conf.d
     rm -f 70-no-bitmaps*.conf
-    ln -s ../conf.avail/70-yes-bitmaps.conf
+    ln -sf ../conf.avail/70-yes-bitmaps.conf
 
     # UW Ttyp0 font
     curl -L -o /tmp/uw-ttyp0.tar.gz \
@@ -301,10 +316,14 @@ setup_fonts() {
 
 setup_locale() {
     log "Locale & keyboard"
-    sed -i 's/^# \(en_US.UTF-8\)/\1/' /etc/locale.gen
-    sed -i 's/^# \(de_DE.UTF-8\)/\1/' /etc/locale.gen
+    grep -q '^en_US.UTF-8' /etc/locale.gen || \
+        sed -i 's/^# \(en_US.UTF-8\)/\1/' /etc/locale.gen
+    grep -q '^de_DE.UTF-8' /etc/locale.gen || \
+        sed -i 's/^# \(de_DE.UTF-8\)/\1/' /etc/locale.gen
     locale-gen
-    sed -i 's/^XKBOPTIONS=""/#XKBOPTIONS=""/' /etc/default/keyboard
+
+    grep -q '^#XKBOPTIONS=""' /etc/default/keyboard || \
+        sed -i 's/^XKBOPTIONS=""/#XKBOPTIONS=""/' /etc/default/keyboard
 }
 
 # ============================================================
@@ -349,7 +368,7 @@ setup_gamemode_group() {
 
 setup_systemd_services() {
     log "Systemd services"
-    cp ~/debian_install/tools/ckb-next-daemon.service /etc/systemd/system/
+    cp /root/debian_install/tools/ckb-next-daemon.service /etc/systemd/system/
     systemctl daemon-reload
     systemctl enable --now ckb-next-daemon
     systemctl enable --now upower.service
@@ -357,7 +376,8 @@ setup_systemd_services() {
 
 setup_repos_ownership() {
     log "Move repos & fix ownership"
-    mv ~/debian_install "/home/$USERNAME/repos/"
+    cd
+    mv debian_install "/home/$USERNAME/repos/"
     chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/repos/"
 }
 
