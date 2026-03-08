@@ -190,6 +190,7 @@ setup_steam() {
         https://cdn.fastly.steamstatic.com/client/installer/steam.deb
     sudo apt install -y /tmp/steam.deb
     rm /tmp/steam.deb
+    cp "$INSTALL_DIR/tools/gaming/update_ge-eggroll.sh" ~
 }
 
 # ============================================================
