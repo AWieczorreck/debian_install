@@ -157,9 +157,9 @@ install_xorg() {
         xfonts-100dpi \
         xfonts-cyrillic \
         gsfonts-x11 \
-	fonts-noto \
-	fonts-noto-cjk \
-	fonts-noto-extra \
+        fonts-noto \
+        fonts-noto-cjk \
+        fonts-noto-extra \
         numlockx \
         xdotool \
         xinput \
