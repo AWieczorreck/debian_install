@@ -404,7 +404,7 @@ main() {
     setup_snixembed
 
     # -- Optional --
-    $OPT_AMD      && install_versioned_packages
+    #$OPT_AMD      && install_versioned_packages
     $OPT_AMD      && setup_amdgpu
 
     $OPT_GAMING   && install_gaming
