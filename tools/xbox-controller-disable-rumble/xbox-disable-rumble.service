@@ -1,0 +1,11 @@
+[Unit]
+Description=Disable Xbox Controller Rumble
+After=multi-user.target
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/bin/xbox-disable-rumble.py
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
