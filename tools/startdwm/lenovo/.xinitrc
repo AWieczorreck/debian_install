@@ -8,6 +8,7 @@ start_apps() {
     dunst &
     lxpolkit &
     slstatus &
+    xcalib /usr/share/color/icc/LEN403D.icm &
 }
 
 init_ssh_gpg() {

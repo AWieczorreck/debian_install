@@ -19,6 +19,7 @@ OPT_GPG=false
 OPT_FONTS=false
 OPT_STEAM=false
 OPT_PASSFF=false
+OPT_COLORPROFILE=false
 
 usage() {
     echo "Verwendung: $0 [OPTIONEN]"
@@ -28,6 +29,7 @@ usage() {
     echo "  --fonts      Hack Nerd Font installieren"
     echo "  --steam      Steam installieren"
     echo "  --passff     PassFF Host App installieren"
+    echo "  --colorprofile Farbprofil installieren"
     echo "  --all        Alles aktivieren"
     echo ""
     exit 0
@@ -40,12 +42,14 @@ for arg in "$@"; do
         --fonts)    OPT_FONTS=true ;;
         --steam)    OPT_STEAM=true ;;
         --passff)   OPT_PASSFF=true ;;
+        --colorprofile)   OPT_COLORPROFILE=true ;;
         --all)
             OPT_SUCKLESS=true
             OPT_GPG=true
             OPT_FONTS=true
             OPT_STEAM=true
             OPT_PASSFF=true
+            OPT_COLORPROFILE=true
             ;;
         --help|-h) usage ;;
         *)
@@ -205,6 +209,15 @@ setup_passff() {
 }
 
 # ============================================================
+# COLORPROFILE
+# ============================================================
+
+setup_passff() {
+    log "Install colorprofile"
+    sudo cp "$INSTALL_DIR/configs/lenovo/*.icm" /usr/share/color/icc/
+}
+
+# ============================================================
 # MAIN
 # ============================================================
 
@@ -216,6 +229,7 @@ main() {
     $OPT_FONTS    && setup_fonts
     $OPT_STEAM    && setup_steam
     $OPT_PASSFF   && setup_passff
+    $OPT_COLORPROFILE   && setup_colorprofile
 
     log "User setup complete!"
 }
