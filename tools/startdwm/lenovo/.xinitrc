@@ -8,6 +8,7 @@ start_apps() {
     dunst &
     lxpolkit &
     slstatus &
+    picom --vsync &
     xcalib /usr/share/color/icc/LEN403D.icm &
 }
 

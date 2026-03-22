@@ -200,6 +200,7 @@ install_audio_video() {
         pulseaudio-utils \
         pavucontrol \
         ffmpeg \
+        picom \
         gstreamer1.0-libav \
         gstreamer1.0-plugins-bad \
         gstreamer1.0-plugins-ugly
