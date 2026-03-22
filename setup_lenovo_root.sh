@@ -24,7 +24,7 @@ OPT_FIRMWARE=false
 usage() {
     echo "Verwendung: $0 [OPTIONEN]"
     echo ""
-    echo "  --intel      Intel GPU Treiber & xorg Konfiguration"
+    echo "  --intel      Intel GPU/NPU Treiber & xorg Konfiguration"
     echo "  --gaming     Gaming Pakete (vulkan, gamemode)"
     echo "  --browser    Firefox Nightly"
     echo "  --security   Smartcard / YubiKey / pass"
@@ -69,7 +69,15 @@ done
 # HELPER
 # ============================================================
 
-log() { echo -e "\n\033[1;34m>>> $1\033[0m\n"; }
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+log()     { echo -e "\n\033[1;34m>>> $1\033[0m\n"; }
+info()    { echo -e "${GREEN}[INFO]${NC}  $1"; }
+warn()    { echo -e "${YELLOW}[WARN]${NC}  $1"; }
+error()   { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 
 # ============================================================
 # SYSTEM BASE
@@ -257,13 +265,130 @@ install_power() {
 }
 
 # ============================================================
-# GPU / INTELGPU CONFIGURATION
+# INTEL CONFIGURATION
 # ============================================================
+setup_intel() {
+    log "INTEL configuration"
+    setup_intelgpu
+    setup_intelnpu
+}
 
 setup_intelgpu() {
     log "INTEL GPU configuration"
     cp /root/debian_install/configs/intel/20-intel.conf /usr/share/X11/xorg.conf.d/
     chmod u+s /usr/bin/Xorg
+}
+
+setup_intelnpu() {
+    log "INTEL NPU configuration"
+
+    # ------------------------------------------------------------
+    # Schritt 1: CPU auf NPU-Unterstützung prüfen
+    # ------------------------------------------------------------
+    info "Prüfe ob NPU-fähige CPU vorhanden ist..."
+    CPU_MODEL=$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | xargs)
+    info "CPU: $CPU_MODEL"
+
+    if ! echo "$CPU_MODEL" | grep -qi "ultra\|meteor lake\|lunar lake\|arrow lake"; then
+        warn "CPU scheint kein Intel Core Ultra (Meteor Lake oder neuer) zu sein."
+        warn "NPU wird nur ab Intel Core Ultra Generation unterstützt."
+        read -rp "Trotzdem fortfahren? [j/N] " CONT
+        [[ "$CONT" =~ ^[jJyY]$ ]] || { info "Abgebrochen."; exit 0; }
+    fi
+
+    # ------------------------------------------------------------
+    # Schritt 2: Level Zero prüfen
+    # ------------------------------------------------------------
+    info "Prüfe Level Zero Installation..."
+    if dpkg -l libze1 2>/dev/null | grep -q '^ii'; then
+        ZE_VER=$(dpkg -l libze1 | awk '/^ii/{print $3}')
+        info "Level Zero (libze1) bereits installiert: $ZE_VER – OK"
+    elif dpkg -l level-zero 2>/dev/null | grep -q '^ii'; then
+        ZE_VER=$(dpkg -l level-zero | awk '/^ii/{print $3}')
+        info "Level Zero bereits installiert: $ZE_VER – OK"
+    else
+        warn "Level Zero nicht gefunden. Versuche Installation über apt..."
+        apt update && apt install -y libze1 || \
+            error "Level Zero konnte nicht installiert werden. Bitte manuell prüfen."
+    fi
+
+    # ------------------------------------------------------------
+    # Schritt 3: Alte NPU-Pakete entfernen
+    # ------------------------------------------------------------
+    info "Entferne alte NPU-Pakete (falls vorhanden)..."
+    dpkg --purge --force-remove-reinstreq \
+        intel-driver-compiler-npu \
+        intel-fw-npu \
+        intel-level-zero-npu 2>/dev/null || true
+    info "Alte Pakete entfernt (oder waren nicht vorhanden)."
+
+    # ------------------------------------------------------------
+    # Schritt 4: Abhängigkeit libtbb12 installieren
+    # ------------------------------------------------------------
+    info "Installiere Abhängigkeit libtbb12..."
+    apt update
+    apt install -y libtbb12 || error "libtbb12 konnte nicht installiert werden."
+
+    # ------------------------------------------------------------
+    # Schritt 5: NPU-Pakete herunterladen
+    # ------------------------------------------------------------
+    NPU_VERSION="1.13.0.20250131-13074932693"
+    NPU_TAG="v1.13.0"
+    BASE_URL="https://github.com/intel/linux-npu-driver/releases/download/${NPU_TAG}"
+    DEB_SUFFIX="ubuntu22.04_amd64.deb"
+
+    PACKAGES=(
+        "intel-driver-compiler-npu_${NPU_VERSION}_${DEB_SUFFIX}"
+        "intel-fw-npu_${NPU_VERSION}_${DEB_SUFFIX}"
+        "intel-level-zero-npu_${NPU_VERSION}_${DEB_SUFFIX}"
+    )
+
+    WORKDIR=$(mktemp -d)
+    info "Lade NPU-Pakete herunter nach: $WORKDIR"
+
+    for PKG in "${PACKAGES[@]}"; do
+        info "  → $PKG"
+        wget -q --no-check-certificate --show-progress \
+            "${BASE_URL}/${PKG}" \
+            -O "${WORKDIR}/${PKG}" \
+            || error "Download fehlgeschlagen: $PKG"
+    done
+
+    # ------------------------------------------------------------
+    # Schritt 6: NPU-Pakete installieren
+    # ------------------------------------------------------------
+    info "Installiere NPU-Pakete..."
+    dpkg -i "${WORKDIR}"/*.deb || {
+        warn "dpkg meldete Fehler – versuche fehlende Abhängigkeiten nachzuinstallieren..."
+        apt install -f -y || error "Abhängigkeiten konnten nicht aufgelöst werden."
+    }
+
+    # Aufräumen
+    rm -rf "$WORKDIR"
+    info "Temporäre Dateien gelöscht."
+
+    # ------------------------------------------------------------
+    # Schritt 7: udev-Regeln einrichten (automatische Berechtigungen)
+    # ------------------------------------------------------------
+    info "Richte udev-Regeln ein für automatische Gerätezugriffe..."
+    bash -c "echo 'SUBSYSTEM==\"accel\", KERNEL==\"accel*\", GROUP=\"render\", MODE=\"0660\"' \
+        > /etc/udev/rules.d/10-intel-vpu.rules"
+    udevadm control --reload-rules
+    udevadm trigger --subsystem-match=accel
+    info "udev-Regeln gesetzt."
+
+    # ------------------------------------------------------------
+    # Schritt 8: Aktuellen Benutzer zur render-Gruppe hinzufügen
+    # ------------------------------------------------------------
+    REAL_USER="${SUDO_USER:-$USER}"
+    if [ -n "$REAL_USER" ] && [ "$REAL_USER" != "root" ]; then
+        info "Füge Benutzer '$REAL_USER' zur Gruppe 'render' hinzu..."
+        usermod -a -G render "$REAL_USER"
+        info "Benutzer hinzugefügt. Wirkung nach dem nächsten Login."
+    else
+        warn "Kein normaler Benutzer erkannt – render-Gruppe bitte manuell setzen:"
+        warn "  sudo usermod -a -G render <dein-benutzername>"
+    fi
 }
 
 # ============================================================
@@ -374,8 +499,7 @@ main() {
     setup_snixembed
 
     # -- Optional --
-    #$OPT_AMD      && install_versioned_packages
-    $OPT_AMD      && setup_intelgpu
+    $OPT_INTEL    && setup_intel
 
     $OPT_GAMING   && install_gaming
     $OPT_GAMING   && setup_gamemode_group
