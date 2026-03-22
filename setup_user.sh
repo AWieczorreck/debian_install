@@ -79,7 +79,7 @@ setup_base() {
     grep -q "QT_QPA_PLATFORMTHEME" ~/.profile || \
         echo "export QT_QPA_PLATFORMTHEME=qt5ct" >> ~/.profile
 
-    cp "$INSTALL_DIR/tools/startdwm/.xinitrc" ~/
+    cp "$INSTALL_DIR/tools/startdwm/desktop/.xinitrc" ~/
 }
 
 # ============================================================
