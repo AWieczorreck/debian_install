@@ -177,6 +177,7 @@ install_build_tools() {
     log "Build tools & development libraries"
     apt install -y \
         build-essential \
+        cmake \
         libgtk-3-dev \
         libgcr-3-dev \
         libwebkit2gtk-4.1-dev \
