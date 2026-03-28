@@ -194,6 +194,13 @@ install_build_tools() {
         qt5ct
 }
 
+install node() {
+    log "Install nvm, latest npm and node v24"
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
+    nvm install-latest-npm
+    nvm install v24
+}
+
 install_audio_video() {
     log "Audio & video"
     apt install -y \
@@ -494,6 +501,7 @@ main() {
     install_kernel
     install_xorg
     install_build_tools
+    install_node
     install_audio_video
     install_cli_tools
     install_desktop_ui
