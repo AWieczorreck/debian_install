@@ -19,6 +19,7 @@ OPT_SECURITY=false
 OPT_POWER=false
 OPT_FONTS=false
 OPT_VIM=false
+OPT_NVIM=false
 OPT_FIRMWARE=false
 
 usage() {
@@ -31,6 +32,7 @@ usage() {
     echo "  --power      Power management (power-profiles-daemon)"
     echo "  --fonts      Bitmap Fonts & UW Ttyp0"
     echo "  --vim        Vim aus Sourcecode bauen"
+    echo "  --nvim       NeoVim aus Sourcecode bauen"
     echo "  --firmware   Linux Firmware aus Sourcecode bauen"
     echo "  --all        Alles aktivieren"
     echo ""
@@ -46,6 +48,7 @@ for arg in "$@"; do
         --power)    OPT_POWER=true ;;
         --fonts)    OPT_FONTS=true ;;
         --vim)      OPT_VIM=true ;;
+        --nvim)     OPT_NVIM=true ;;
         --firmware) OPT_FIRMWARE=true ;;
         --all)
             OPT_AMD=true
@@ -55,6 +58,7 @@ for arg in "$@"; do
             OPT_POWER=true
             OPT_FONTS=true
             OPT_VIM=true
+            OPT_NVIM=true
             OPT_FIRMWARE=true
             ;;
         --help|-h) usage ;;
@@ -192,7 +196,7 @@ install_build_tools() {
         qt5ct
 }
 
-install node() {
+install_node() {
     log "Install nvm, latest npm and node v24"
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
     nvm install-latest-npm
@@ -226,7 +230,11 @@ install_cli_tools() {
         fzf \
         fd-find \
         rdfind \
-        psmisc
+        psmisc \
+        glow
+  
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    curl -LsSf https://astral.sh/ruff/install.sh | sh
 }
 
 install_security_smartcard() {
@@ -349,6 +357,42 @@ build_vim() {
     make install
 }
 
+install_go() {
+  rm -rf /usr/local/go && tar -C /usr/local -xzf go1.26.2.linux-amd64.tar.gz
+}
+
+build_neovim() {
+    log "Build NeoVim from source"
+
+    git clone https://github.com/neovim/neovim.git "/home/$USERNAME/repos/neovim"
+    cd "/home/$USERNAME/repos/neovim"
+    make CMAKE_BUILD_TYPE=RelWithDebInfo
+    make install
+
+    wget https://github.com/tree-sitter/tree-sitter/releases/download/v0.26.1/tree-sitter-linux-x64.gz
+    gunzip tree-sitter-linux-x64.gz
+    chmod +x tree-sitter-linux-x64
+    mv tree-sitter-linux-x64 /usr/local/bin/tree-sitter
+    
+    install_neovim_language_servers
+}
+
+install_neovim_language_servers() {
+    npm install -g neovim
+    
+    wget -O /tmp/lua-language-server.tar.gz \
+        https://github.com/LuaLS/lua-language-server/releases/download/3.18.1/lua-language-server-3.18.1-linux-x64.tar.gz
+    mkdir -p /tmp/lua-language-server && tar xf /tmp/lua-language-server.tar.gz -C /tmp/lua-language-server
+    mv /tmp/lua-language-server/bin/lua-language-server /home/$USERNAME/.local/bin/
+
+    npm install -g pyright
+    npm install -g dockerfile-language-server-nodejs
+    go install golang.org/x/tools/gopls@latest
+    npm -g install svelte-language-server
+    npm -g install bash-language-server
+    npm -g install yaml-language-server
+}
+
 build_linux_firmware() {
     log "Build & install linux-firmware"
     git clone https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git \
@@ -406,6 +450,7 @@ main() {
     install_xorg
     install_build_tools
     install_node
+    install_go
     install_audio_video
     install_cli_tools
     install_desktop_ui
@@ -429,6 +474,7 @@ main() {
     $OPT_FONTS    && setup_fonts
 
     $OPT_VIM      && build_vim
+    $OPT_NVIM     && build_neovim && install_neovim_language_server
     $OPT_FIRMWARE && build_linux_firmware
 
     setup_repos_ownership
