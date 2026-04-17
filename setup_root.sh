@@ -8,6 +8,12 @@ set -euo pipefail
 USERNAME=""
 read -p "username: " USERNAME
 
+# Validate username
+if [[ -z "$USERNAME" ]]; then
+  echo "Error: username cannot be empty"
+  exit 1
+fi
+
 # ============================================================
 # FLAGS
 # ============================================================
@@ -23,50 +29,50 @@ OPT_NVIM=false
 OPT_FIRMWARE=false
 
 usage() {
-    echo "Verwendung: $0 [OPTIONEN]"
-    echo ""
-    echo "  --amd        AMD GPU Treiber & xorg Konfiguration"
-    echo "  --gaming     Gaming Pakete (vulkan, gamemode, ckb-next)"
-    echo "  --browser    Firefox Nightly"
-    echo "  --security   Smartcard / YubiKey / pass"
-    echo "  --power      Power management (power-profiles-daemon)"
-    echo "  --fonts      Bitmap Fonts & UW Ttyp0"
-    echo "  --vim        Vim aus Sourcecode bauen"
-    echo "  --nvim       NeoVim aus Sourcecode bauen"
-    echo "  --firmware   Linux Firmware aus Sourcecode bauen"
-    echo "  --all        Alles aktivieren"
-    echo ""
-    exit 0
+  echo "Verwendung: $0 [OPTIONEN]"
+  echo ""
+  echo "  --amd        AMD GPU Treiber & xorg Konfiguration"
+  echo "  --gaming     Gaming Pakete (vulkan, gamemode, ckb-next)"
+  echo "  --browser    Firefox Nightly"
+  echo "  --security   Smartcard / YubiKey / pass"
+  echo "  --power      Power management (power-profiles-daemon)"
+  echo "  --fonts      Bitmap Fonts & UW Ttyp0"
+  echo "  --vim        Vim aus Sourcecode bauen"
+  echo "  --nvim       NeoVim aus Sourcecode bauen"
+  echo "  --firmware   Linux Firmware aus Sourcecode bauen"
+  echo "  --all        Alles aktivieren"
+  echo ""
+  exit 0
 }
 
 for arg in "$@"; do
-    case "$arg" in
-        --amd)      OPT_AMD=true ;;
-        --gaming)   OPT_GAMING=true ;;
-        --browser)  OPT_BROWSER=true ;;
-        --security) OPT_SECURITY=true ;;
-        --power)    OPT_POWER=true ;;
-        --fonts)    OPT_FONTS=true ;;
-        --vim)      OPT_VIM=true ;;
-        --nvim)     OPT_NVIM=true ;;
-        --firmware) OPT_FIRMWARE=true ;;
-        --all)
-            OPT_AMD=true
-            OPT_GAMING=true
-            OPT_BROWSER=true
-            OPT_SECURITY=true
-            OPT_POWER=true
-            OPT_FONTS=true
-            OPT_VIM=true
-            OPT_NVIM=true
-            OPT_FIRMWARE=true
-            ;;
-        --help|-h) usage ;;
-        *)
-            echo "Unbekanntes Argument: $arg"
-            usage
-            ;;
-    esac
+  case "$arg" in
+  --amd) OPT_AMD=true ;;
+  --gaming) OPT_GAMING=true ;;
+  --browser) OPT_BROWSER=true ;;
+  --security) OPT_SECURITY=true ;;
+  --power) OPT_POWER=true ;;
+  --fonts) OPT_FONTS=true ;;
+  --vim) OPT_VIM=true ;;
+  --nvim) OPT_NVIM=true ;;
+  --firmware) OPT_FIRMWARE=true ;;
+  --all)
+    OPT_AMD=true
+    OPT_GAMING=true
+    OPT_BROWSER=true
+    OPT_SECURITY=true
+    OPT_POWER=true
+    OPT_FONTS=true
+    OPT_VIM=true
+    OPT_NVIM=true
+    OPT_FIRMWARE=true
+    ;;
+  --help | -h) usage ;;
+  *)
+    echo "Unbekanntes Argument: $arg"
+    usage
+    ;;
+  esac
 done
 
 # ============================================================
@@ -75,15 +81,22 @@ done
 
 log() { echo -e "\n\033[1;34m>>> $1\033[0m\n"; }
 
+# Add line to file if it doesn't exists
+add_line_once() {
+  local file="$1"
+  local line="$2"
+  grep -qF "$line" "$file" || echo "$line" >>"$file"
+}
+
 # ============================================================
 # SYSTEM BASE
 # ============================================================
 
 setup_base() {
-    log "Base packages & sudo"
-    apt install -y sudo gpg
-    usermod -a -G sudo "$USERNAME"
-    mkdir ~/.gnupg
+  log "Base packages & sudo"
+  apt install -y sudo gpg
+  usermod -a -G sudo "$USERNAME"
+  mkdir ~/.gnupg
 }
 
 # ============================================================
@@ -91,22 +104,23 @@ setup_base() {
 # ============================================================
 
 setup_grub() {
-    log "GRUB configuration"
+  log "GRUB configuration"
+  local grub_file="/etc/default/grub"
 
-    # Nur hinzufügen wenn noch nicht vorhanden
-    grep -q "nosgx" /etc/default/grub || \
-        sed -i 's/\(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*\)"/\1 nosgx"/' /etc/default/grub
+  # Function to add kernel parameter safely
+  add_grub_param() {
+    local param="$1"
+    if ! grep -q "$param" "$grub_file"; then
+      sed -i "s/\(GRUB_CMDLINE_LINUX_DEFAULT=\"[^\"]*\)\"/\1 $param\"/" "$grub_file"
+    fi
+  }
 
-    grep -q "amdgpu.dc=1" /etc/default/grub || \
-        sed -i 's/\(GRUB_CMDLINE_LINUX_DEFAULT="[^"]*\)"/\1 amdgpu.dc=1"/' /etc/default/grub
+  add_grub_param "nosgx"
+  add_grub_param "amdgpu.dc=1"
+  add_line_once "$grub_file" "GRUB_GFXMODE=1920x1200"
+  add_line_once "$grub_file" "GRUB_GFXPAYLOAD_LINUX=keep"
 
-    grep -q "GRUB_GFXMODE=1920x1200" /etc/default/grub || \
-        echo "GRUB_GFXMODE=1920x1200" >> /etc/default/grub
-
-    grep -q "GRUB_GFXPAYLOAD_LINUX=keep" /etc/default/grub || \
-        echo "GRUB_GFXPAYLOAD_LINUX=keep" >> /etc/default/grub
-
-    update-grub
+  update-grub
 }
 
 # ============================================================
@@ -114,25 +128,25 @@ setup_grub() {
 # ============================================================
 
 setup_repos() {
-    log "APT repositories"
+  log "APT repositories"
 
-    # Add i386 architecture
-    sed -i 's/^deb http/deb [arch=amd64,i386] http/g' /etc/apt/sources.list
-    dpkg --add-architecture i386
+  # Add i386 architecture
+  sed -i 's/^deb http/deb [arch=amd64,i386] http/g' /etc/apt/sources.list
+  dpkg --add-architecture i386
 
-    # Backports
-    echo "deb [arch=amd64,i386] http://deb.debian.org/debian trixie-backports main contrib non-free non-free-firmware" \
-        | tee /etc/apt/sources.list.d/trixie-backports.list
+  # Backports
+  add_line_once /etc/apt/sources.list.d/trixie-backports.list \
+    "deb [arch=amd64,i386] http://deb.debian.org/debian trixie-backports main contrib non-free non-free-firmware" |
 
     # Mozilla repo
     install -d -m 0755 /etc/apt/keyrings
-    wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- \
-        | tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null
-    gpg -n -q --import --import-options import-show /etc/apt/keyrings/packages.mozilla.org.asc \
-        | awk '/pub/{getline; gsub(/^ +| +$/,""); print "\n"$0"\n"}'
-    echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" \
-        | tee -a /etc/apt/sources.list.d/mozilla.list > /dev/null
+  wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- |
+    tee /etc/apt/keyrings/packages.mozilla.org.asc >/dev/null
+  gpg -n -q --import --import-options import-show /etc/apt/keyrings/packages.mozilla.org.asc |
+    awk '/pub/{getline; gsub(/^ +| +$/,""); print "\n"$0"\n"}'
 
+  add_line_once /etc/apt/sources.list.d/mozilla.list \
+    "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" |
     apt update
 }
 
@@ -141,150 +155,151 @@ setup_repos() {
 # ============================================================
 
 install_kernel() {
-    log "Kernel & firmware (backports)"
-    apt install -y -t trixie-backports \
-        linux-image-amd64 \
-        linux-headers-amd64 \
-        firmware-amd-graphics
+  log "Kernel & firmware (backports)"
+  apt install -y -t trixie-backports \
+    linux-image-amd64 \
+    linux-headers-amd64 \
+    firmware-amd-graphics
 }
 
 install_xorg() {
-    log "X11 / Xorg packages"
-    apt install -y \
-        xserver-xorg \
-        x11-xserver-utils \
-        x11-utils \
-        xinit \
-        xserver-xorg-video-all \
-        xfonts-base \
-        xfonts-75dpi \
-        xfonts-100dpi \
-        xfonts-cyrillic \
-        gsfonts-x11 \
-        fonts-noto \
-        fonts-noto-cjk \
-        fonts-noto-extra \
-        numlockx \
-        xdotool \
-        xinput \
-        libx11-dev \
-        libxft-dev \
-        libxcursor-dev \
-        libxcb1-dev \
-        libx11-xcb-dev \
-        libxcb-res0-dev \
-        libxcb-xinerama0 \
-        libxinerama-dev
+  log "X11 / Xorg packages"
+  apt install -y \
+    xserver-xorg \
+    x11-xserver-utils \
+    x11-utils \
+    xinit \
+    xserver-xorg-video-all \
+    xfonts-base \
+    xfonts-75dpi \
+    xfonts-100dpi \
+    xfonts-cyrillic \
+    gsfonts-x11 \
+    fonts-noto \
+    fonts-noto-cjk \
+    fonts-noto-extra \
+    numlockx \
+    xdotool \
+    xinput \
+    libx11-dev \
+    libxft-dev \
+    libxcursor-dev \
+    libxcb1-dev \
+    libx11-xcb-dev \
+    libxcb-res0-dev \
+    libxcb-xinerama0 \
+    libxinerama-dev
 }
 
 install_build_tools() {
-    log "Build tools & development libraries"
-    apt install -y \
-        build-essential \
-        cmake \
-        libgtk-3-dev \
-        libgcr-3-dev \
-        libwebkit2gtk-4.1-dev \
-        libxtst-dev \
-        libxt-dev \
-        libsm-dev \
-        libxpm-dev \
-        libnss3-dev \
-        libopengl0 \
-        libfuse2t64 \
-        fuse \
-        qt5ct
+  log "Build tools & development libraries"
+  apt install -y \
+    build-essential \
+    cmake \
+    clang \
+    libgtk-3-dev \
+    libgcr-3-dev \
+    libwebkit2gtk-4.1-dev \
+    libxtst-dev \
+    libxt-dev \
+    libsm-dev \
+    libxpm-dev \
+    libnss3-dev \
+    libopengl0 \
+    libfuse2t64 \
+    fuse \
+    qt5ct
 }
 
 install_node() {
-    log "Install nvm, latest npm and node v24"
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
-    nvm install-latest-npm
-    nvm install v24
+  log "Install nvm, latest npm and node v24"
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
+  nvm install-latest-npm
+  nvm install v24
 }
 
 install_audio_video() {
-    log "Audio & video"
-    apt install -y \
-        pipewire \
-        pulseaudio-utils \
-        pavucontrol \
-        ffmpeg \
-        gstreamer1.0-libav \
-        gstreamer1.0-plugins-bad \
-        gstreamer1.0-plugins-ugly
+  log "Audio & video"
+  apt install -y \
+    pipewire \
+    pulseaudio-utils \
+    pavucontrol \
+    ffmpeg \
+    gstreamer1.0-libav \
+    gstreamer1.0-plugins-bad \
+    gstreamer1.0-plugins-ugly
 }
 
 install_cli_tools() {
-    log "CLI tools"
-    apt install -y \
-        curl \
-        wget \
-        vim \
-        unzip \
-        zip \
-        gpg \
-        mc \
-        bat \
-        ripgrep \
-        fzf \
-        fd-find \
-        rdfind \
-        psmisc \
-        glow
-  
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    curl -LsSf https://astral.sh/ruff/install.sh | sh
+  log "CLI tools"
+  apt install -y \
+    curl \
+    wget \
+    vim \
+    unzip \
+    zip \
+    gpg \
+    mc \
+    bat \
+    ripgrep \
+    fzf \
+    fd-find \
+    rdfind \
+    psmisc \
+    glow
+
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  curl -LsSf https://astral.sh/ruff/install.sh | sh
 }
 
 install_security_smartcard() {
-    log "Security & smartcard"
-    apt install -y \
-        pcscd \
-        scdaemon \
-        pinentry-gtk2 \
-        pass \
-        yubikey-manager
+  log "Security & smartcard"
+  apt install -y \
+    pcscd \
+    scdaemon \
+    pinentry-gtk2 \
+    pass \
+    yubikey-manager
 }
 
 install_desktop_ui() {
-    log "Desktop UI & utilities"
-    apt install -y \
-        thunar \
-        lxpolkit \
-        dunst \
-        acpi \
-        upower \
-        npm
+  log "Desktop UI & utilities"
+  apt install -y \
+    thunar \
+    lxpolkit \
+    dunst \
+    acpi \
+    upower \
+    npm
 }
 
 install_gaming() {
-    log "Gaming & GPU tools"
-    apt install -y \
-        vulkan-tools \
-        mesa-vulkan-drivers \
-        gamemode \
-        ckb-next
+  log "Gaming & GPU tools"
+  apt install -y \
+    vulkan-tools \
+    mesa-vulkan-drivers \
+    gamemode \
+    ckb-next
 }
 
 install_browser() {
-    log "Browser"
-    apt install -y \
-        firefox-nightly \
-        firefox-nightly-l10n-de
+  log "Browser"
+  apt install -y \
+    firefox-nightly \
+    firefox-nightly-l10n-de
 }
 
 install_power() {
-    log "Power management"
-    apt install -y \
-        power-profiles-daemon
+  log "Power management"
+  apt install -y \
+    power-profiles-daemon
 }
 
 install_versioned_packages() {
-    log "Versioned packages (pinned)"
-    apt install -y --allow-downgrades \
-        libelf1t64:amd64=0.192-4 \
-        libelf1t64:i386=0.192-4
+  log "Versioned packages (pinned)"
+  apt install -y --allow-downgrades \
+    libelf1t64:amd64=0.192-4 \
+    libelf1t64:i386=0.192-4
 }
 
 # ============================================================
@@ -292,22 +307,32 @@ install_versioned_packages() {
 # ============================================================
 
 setup_amdgpu() {
-    log "AMD GPU configuration"
-    local conf="/usr/share/X11/xorg.conf.d/10-amdgpu.conf"
+  log "AMD GPU configuration"
+  local conf="/usr/share/X11/xorg.conf.d/10-amdgpu.conf"
 
-    grep -q 'TearFree'      "$conf" || sed -i '$i\ \ \ \ \ \ \ \ Option "TearFree" "true"' "$conf"
-    grep -q 'SWCursor'      "$conf" || sed -i '$i\ \ \ \ \ \ \ \ Option "SWCursor" "true"' "$conf"
-    grep -q '"DRI" "3"'     "$conf" || sed -i '$i\ \ \ \ \ \ \ \ Option "DRI" "3"'         "$conf"
-    grep -q 'HotplugDriver' "$conf" && sed -i '/HotplugDriver/d'                           "$conf"
+  # Consolidate option additions
+  local -a options=(
+    'Option "TearFree" "true"'
+    'Option "SWCursor" "true"'
+    'Option "DRI" "3"'
+  )
 
-    grep -q 'vga_arbiter' /etc/udev/rules.d/99-vga-arbiter.rules 2>/dev/null || \
-        echo 'KERNEL=="vga_arbiter", GROUP="video", MODE="0660"' \
-            | tee /etc/udev/rules.d/99-vga-arbiter.rules
+  for option in "${options[@]}"; do
+    if ! grep -qF "$option" "$conf"; then
+      sed -i '$i\        '"$option" "$conf"
+    fi
+  done
 
-    chmod u+s /usr/bin/Xorg
+  # Remove conflicting option
+  sed -i '/HotplugDriver/d' "$conf"
 
-    grep -q 'RADV_PERFTEST' /etc/environment || \
-        echo "RADV_PERFTEST=aco" | tee -a /etc/environment
+  # Setup udev rules once
+  add_line_once /etc/udev/rules.d/99-vga-arbiter.rules \
+    'KERNEL=="vga_arbiter", GROUP="video", MODE="0660"'
+
+  chmod u+s /usr/bin/Xorg
+
+  add_line_once /etc/environment "RADV_PERFTEST=aco"
 }
 
 # ============================================================
@@ -315,18 +340,18 @@ setup_amdgpu() {
 # ============================================================
 
 setup_fonts() {
-    log "Bitmap fonts"
-    cd /etc/fonts/conf.d
-    rm -f 70-no-bitmaps*.conf
-    ln -sf ../conf.avail/70-yes-bitmaps.conf
+  log "Bitmap fonts"
+  cd /etc/fonts/conf.d
+  rm -f 70-no-bitmaps*.conf
+  ln -sf ../conf.avail/70-yes-bitmaps.conf
 
-    # UW Ttyp0 font
-    curl -L -o /tmp/uw-ttyp0.tar.gz \
-        "https://people.mpi-inf.mpg.de/~uwe/misc/uw-ttyp0/uw-ttyp0-2.1.tar.gz"
-    tar xf /tmp/uw-ttyp0.tar.gz -C /tmp
-    cd /tmp/uw-ttyp0-2.1
-    ./configure && make && make install
-    rm -rf /tmp/uw-ttyp0-2.1 /tmp/uw-ttyp0.tar.gz
+  # UW Ttyp0 font
+  curl -L -o /tmp/uw-ttyp0.tar.gz \
+    "https://people.mpi-inf.mpg.de/~uwe/misc/uw-ttyp0/uw-ttyp0-2.1.tar.gz"
+  tar xf /tmp/uw-ttyp0.tar.gz -C /tmp
+  cd /tmp/uw-ttyp0-2.1
+  ./configure && make && make install
+  rm -rf /tmp/uw-ttyp0-2.1 /tmp/uw-ttyp0.tar.gz
 }
 
 # ============================================================
@@ -334,15 +359,15 @@ setup_fonts() {
 # ============================================================
 
 setup_locale() {
-    log "Locale & keyboard"
-    grep -q '^en_US.UTF-8' /etc/locale.gen || \
-        sed -i 's/^# \(en_US.UTF-8\)/\1/' /etc/locale.gen
-    grep -q '^de_DE.UTF-8' /etc/locale.gen || \
-        sed -i 's/^# \(de_DE.UTF-8\)/\1/' /etc/locale.gen
-    locale-gen
+  log "Locale & keyboard"
+  grep -q '^en_US.UTF-8' /etc/locale.gen ||
+    sed -i 's/^# \(en_US.UTF-8\)/\1/' /etc/locale.gen
+  grep -q '^de_DE.UTF-8' /etc/locale.gen ||
+    sed -i 's/^# \(de_DE.UTF-8\)/\1/' /etc/locale.gen
+  locale-gen
 
-    grep -q '^#XKBOPTIONS=""' /etc/default/keyboard || \
-        sed -i 's/^XKBOPTIONS=""/#XKBOPTIONS=""/' /etc/default/keyboard
+  grep -q '^#XKBOPTIONS=""' /etc/default/keyboard ||
+    sed -i 's/^XKBOPTIONS=""/#XKBOPTIONS=""/' /etc/default/keyboard
 }
 
 # ============================================================
@@ -350,57 +375,69 @@ setup_locale() {
 # ============================================================
 
 build_vim() {
-    log "Build Vim from source"
-    git clone https://github.com/vim/vim.git "/home/$USERNAME/repos/vim"
-    cd "/home/$USERNAME/repos/vim"
-    ./configure --with-features=huge --with-x --prefix=/usr/local
-    make install
+  log "Build Vim from source"
+  git clone https://github.com/vim/vim.git "/home/$USERNAME/repos/vim"
+  cd "/home/$USERNAME/repos/vim"
+  ./configure --with-features=huge --with-x --prefix=/usr/local
+  make install
 }
 
 install_go() {
   rm -rf /usr/local/go && tar -C /usr/local -xzf go1.26.2.linux-amd64.tar.gz
 }
 
-build_neovim() {
-    log "Build NeoVim from source"
-
-    git clone https://github.com/neovim/neovim.git "/home/$USERNAME/repos/neovim"
-    cd "/home/$USERNAME/repos/neovim"
-    make CMAKE_BUILD_TYPE=RelWithDebInfo
-    make install
-
-    wget https://github.com/tree-sitter/tree-sitter/releases/download/v0.26.1/tree-sitter-linux-x64.gz
-    gunzip tree-sitter-linux-x64.gz
-    chmod +x tree-sitter-linux-x64
-    mv tree-sitter-linux-x64 /usr/local/bin/tree-sitter
-    
-    install_neovim_language_servers
+install_rust() {
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 }
 
-install_neovim_language_servers() {
-    npm install -g neovim
-    
-    wget -O /tmp/lua-language-server.tar.gz \
-        https://github.com/LuaLS/lua-language-server/releases/download/3.18.1/lua-language-server-3.18.1-linux-x64.tar.gz
-    mkdir -p /tmp/lua-language-server && tar xf /tmp/lua-language-server.tar.gz -C /tmp/lua-language-server
-    mv /tmp/lua-language-server/bin/lua-language-server /home/$USERNAME/.local/bin/
+build_neovim() {
+  log "Build NeoVim from source"
 
-    npm install -g pyright
-    npm install -g dockerfile-language-server-nodejs
-    go install golang.org/x/tools/gopls@latest
-    npm -g install svelte-language-server
-    npm -g install bash-language-server
-    npm -g install yaml-language-server
+  git clone https://github.com/neovim/neovim.git "/home/$USERNAME/repos/neovim"
+  cd "/home/$USERNAME/repos/neovim"
+  make CMAKE_BUILD_TYPE=RelWithDebInfo
+  make install
+
+  install_neovim_tooling
+}
+
+install_neovim_tooling() {
+  log "NeoVim tooling"
+
+  # Tree-sitter
+  wget -q https://github.com/tree-sitter/tree-sitter/releases/download/v0.26.1/tree-sitter-linux-x64.gz -O /tmp/tree-sitter-linux-x64.gz
+  gunzip -f /tmp/tree-sitter-linux-x64.gz
+  chmod +x /tmp/tree-sitter-linux-x64
+  mv /tmp/tree-sitter-linux-x64 /usr/local/bin/tree-sitter
+
+  npm install -g neovim
+
+  # Lua Language Server
+  wget -qO /tmp/lua-language-server.tar.gz \
+    https://github.com/LuaLS/lua-language-server/releases/download/3.18.1/lua-language-server-3.18.1-linux-x64.tar.gz
+  mkdir -p /tmp/lua-language-server
+  tar xf /tmp/lua-language-server.tar.gz -C /tmp/lua-language-server
+  install -D /tmp/lua-language-server/bin/lua-language-server /home/"$USERNAME"/.local/bin/lua-language-server
+  rm -rf /tmp/lua-language-server.tar.gz /tmp/lua-language-server
+
+  # LSP servers
+  npm install -g pyright dockerfile-language-server-nodejs svelte-language-server bash-language-server yaml-language-server prettier
+
+  go install golang.org/x/tools/gopls@latest
+  go install mvdan.cc/sh/v3/cmd/shfmt@latest
+
+  cargo install stylua
+  apt install -y clangd clang-format
 }
 
 build_linux_firmware() {
-    log "Build & install linux-firmware"
-    git clone https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git \
-        "/home/$USERNAME/repos/linux-firmware"
-    cd "/home/$USERNAME/repos/linux-firmware"
-    make install
-    make dedup
-    update-initramfs -u -k all
+  log "Build & install linux-firmware"
+  git clone https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git \
+    "/home/$USERNAME/repos/linux-firmware"
+  cd "/home/$USERNAME/repos/linux-firmware"
+  make install
+  make dedup
+  update-initramfs -u -k all
 }
 
 # ============================================================
@@ -408,32 +445,32 @@ build_linux_firmware() {
 # ============================================================
 
 setup_snixembed() {
-    log "snixembed (system tray)"
-    wget -O /tmp/setup-snixembed.sh \
-        https://gist.githubusercontent.com/archisman-panigrahi/cd571ddea1aa2c5e2b4fa7bcbee7d5df/raw/setup-snixembed-debian.sh
-    bash /tmp/setup-snixembed.sh
-    rm /tmp/setup-snixembed.sh
+  log "snixembed (system tray)"
+  wget -O /tmp/setup-snixembed.sh \
+    https://gist.githubusercontent.com/archisman-panigrahi/cd571ddea1aa2c5e2b4fa7bcbee7d5df/raw/setup-snixembed-debian.sh
+  bash /tmp/setup-snixembed.sh
+  rm /tmp/setup-snixembed.sh
 }
 
 setup_gamemode_group() {
-    log "Gamemode group"
-    groupadd -f gamemode
-    usermod -a -G gamemode "$USERNAME"
+  log "Gamemode group"
+  groupadd -f gamemode
+  usermod -a -G gamemode "$USERNAME"
 }
 
 setup_systemd_services() {
-    log "Systemd services"
-    cp /root/debian_install/tools/ckb-next-daemon.service /etc/systemd/system/
-    systemctl daemon-reload
-    systemctl enable --now ckb-next-daemon
-    systemctl enable --now upower.service
+  log "Systemd services"
+  cp /root/debian_install/tools/ckb-next-daemon.service /etc/systemd/system/
+  systemctl daemon-reload
+  systemctl enable --now ckb-next-daemon
+  systemctl enable --now upower.service
 }
 
 setup_repos_ownership() {
-    log "Move repos & fix ownership"
-    cd
-    mv debian_install "/home/$USERNAME/repos/"
-    chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/repos/"
+  log "Move repos & fix ownership"
+  cd
+  mv debian_install "/home/$USERNAME/repos/"
+  chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/repos/"
 }
 
 # ============================================================
@@ -441,45 +478,46 @@ setup_repos_ownership() {
 # ============================================================
 
 main() {
-    # -- Basis (immer) --
-    setup_base
-    setup_grub
-    setup_repos
+  # -- Basis --
+  setup_base
+  setup_grub
+  setup_repos
 
-    install_kernel
-    install_xorg
-    install_build_tools
-    install_node
-    install_go
-    install_audio_video
-    install_cli_tools
-    install_desktop_ui
-    setup_locale
-    setup_snixembed
+  install_kernel
+  install_xorg
+  install_build_tools
+  install_node
+  install_go
+  install_rust
+  install_audio_video
+  install_cli_tools
+  install_desktop_ui
+  setup_locale
+  setup_snixembed
 
-    # -- Optional --
-    #$OPT_AMD      && install_versioned_packages
-    $OPT_AMD      && setup_amdgpu
+  # -- Optional --
+  $OPT_AMD && setup_amdgpu
 
-    $OPT_GAMING   && install_gaming
-    $OPT_GAMING   && setup_gamemode_group
-    $OPT_GAMING   && setup_systemd_services
+  $OPT_GAMING && install_gaming
+  $OPT_GAMING && setup_gamemode_group
+  $OPT_GAMING && setup_systemd_services
+  #$OPT_GAMING   && install_versioned_packages
 
-    $OPT_BROWSER  && install_browser
+  $OPT_BROWSER && install_browser
 
-    $OPT_SECURITY && install_security_smartcard
+  $OPT_SECURITY && install_security_smartcard
 
-    $OPT_POWER    && install_power
+  $OPT_POWER && install_power
 
-    $OPT_FONTS    && setup_fonts
+  $OPT_FONTS && setup_fonts
 
-    $OPT_VIM      && build_vim
-    $OPT_NVIM     && build_neovim && install_neovim_language_server
-    $OPT_FIRMWARE && build_linux_firmware
+  $OPT_VIM && build_vim
+  $OPT_NVIM && build_neovim
+  $OPT_FIRMWARE && build_linux_firmware
 
-    setup_repos_ownership
+  setup_repos_ownership
 
-    log "Setup complete!"
+  log "Setup complete!"
 }
 
 main
