@@ -85,6 +85,9 @@ log() { echo -e "\n\033[1;34m>>> $1\033[0m\n"; }
 add_line_once() {
   local file="$1"
   local line="$2"
+  if [[ ! -f "$file" ]]; then
+    mkdir -p "$(dirname "$file")"
+  fi
   grep -qF "$line" "$file" || echo "$line" >>"$file"
 }
 
@@ -214,6 +217,8 @@ install_build_tools() {
 install_node() {
   log "Install nvm, latest npm and node v24"
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
+
+  source "$HOME/.nvm/nvm.sh"
   nvm install-latest-npm
   nvm install v24
 }
@@ -247,9 +252,6 @@ install_cli_tools() {
     rdfind \
     psmisc \
     glow
-
-  curl -LsSf https://astral.sh/uv/install.sh | sh
-  curl -LsSf https://astral.sh/ruff/install.sh | sh
 }
 
 install_security_smartcard() {
@@ -310,7 +312,11 @@ setup_amdgpu() {
   log "AMD GPU configuration"
   local conf="/usr/share/X11/xorg.conf.d/10-amdgpu.conf"
 
-  # Consolidate option additions
+  if [[ ! -f "$conf" ]]; then
+    echo "Error: $conf not found" >&2
+    return 1
+  fi
+
   local -a options=(
     'Option "TearFree" "true"'
     'Option "SWCursor" "true"'
@@ -318,9 +324,7 @@ setup_amdgpu() {
   )
 
   for option in "${options[@]}"; do
-    if ! grep -qF "$option" "$conf"; then
-      sed -i '$i\        '"$option" "$conf"
-    fi
+    grep -qF "$option" "$conf" || sed -i '$i\        '"$option" "$conf"
   done
 
   # Remove conflicting option
@@ -331,7 +335,6 @@ setup_amdgpu() {
     'KERNEL=="vga_arbiter", GROUP="video", MODE="0660"'
 
   chmod u+s /usr/bin/Xorg
-
   add_line_once /etc/environment "RADV_PERFTEST=aco"
 }
 
@@ -387,7 +390,10 @@ install_go() {
 }
 
 install_rust() {
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  log "Installing Rust and tools"
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  curl -LsSf https://astral.sh/ruff/install.sh | sh
 }
 
 build_neovim() {
@@ -413,14 +419,14 @@ install_neovim_tooling() {
   npm install -g neovim
 
   # Lua Language Server
+  mkdir -p /tmp/lua-language-server
   wget -qO /tmp/lua-language-server.tar.gz \
     https://github.com/LuaLS/lua-language-server/releases/download/3.18.1/lua-language-server-3.18.1-linux-x64.tar.gz
-  mkdir -p /tmp/lua-language-server
   tar xf /tmp/lua-language-server.tar.gz -C /tmp/lua-language-server
   install -D /tmp/lua-language-server/bin/lua-language-server /home/"$USERNAME"/.local/bin/lua-language-server
   rm -rf /tmp/lua-language-server.tar.gz /tmp/lua-language-server
 
-  # LSP servers
+  # install LSP servers
   npm install -g pyright dockerfile-language-server-nodejs svelte-language-server bash-language-server yaml-language-server prettier
 
   go install golang.org/x/tools/gopls@latest
