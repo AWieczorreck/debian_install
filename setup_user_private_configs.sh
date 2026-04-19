@@ -24,12 +24,13 @@ setup_password_store() {
 }
 
 # ============================================================
-# VIM-CONFIG
+# (N)VIM-CONFIG
 # ============================================================
 
-setup_vim_config() {
+setup_n_vim_config() {
     rm -rf ~/.vim
     git clone git@github.com:$GH_USERNAME/vimconfig ~/.vim
+    mv ~./vim/nvim ~/.config
 }
 
 
@@ -39,7 +40,7 @@ setup_vim_config() {
 
 main() {
     setup_password_store
-    setup_vim_config
+    setup_n_vim_config
 
     log "User private configs complete!"
 }
