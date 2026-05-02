@@ -261,19 +261,13 @@ main() {
     log "User setup complete!"
 }
 
-main
-    curl -sSL \
-        https://codeberg.org/PassFF/passff-host/releases/download/latest/install_host_app.sh \
-        | bash -s -- firefox
-}
-
 # ============================================================
-# COLORPROFILE
+# PASSFF
 # ============================================================
 
 setup_passff() {
     log "Install colorprofile"
-    sudo cp "$INSTALL_DIR/configs/lenovo/*.icm" /usr/share/color/icc/
+    curl -sSL https://codeberg.org/PassFF/passff-host/releases/download/latest/install_host_app.sh | bash -s -- firefox
 }
 
 # ============================================================

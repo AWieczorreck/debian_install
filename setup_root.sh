@@ -216,11 +216,7 @@ install_build_tools() {
 
 install_node() {
   log "Install nvm, latest npm and node v24"
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
-
-  source "$HOME/.nvm/nvm.sh"
-  nvm install-latest-npm
-  nvm install v24
+  curl -fsSL https://raw.githubusercontent.com/mklement0/n-install/stable/bin/n-install | bash -s 24
 }
 
 install_audio_video() {
