@@ -1,0 +1,78 @@
+set nocompatible
+
+filetype plugin on
+filetype indent on
+
+set expandtab
+set smarttab
+set shiftwidth=4
+set tabstop=4
+set autoindent
+
+set ignorecase
+set smartcase
+
+set lazyredraw
+
+set noerrorbells
+set novisualbell
+
+set wildmenu
+
+set number
+
+set noswapfile
+
+set mouse=a
+set ttymouse=sgr
+
+set clipboard=unnamedplus
+
+set list
+set listchars=tab:▸\ ,trail:· listchars-=eol:$
+
+set termguicolors
+syntax enable
+source ~/.vim/colors/corporation.vim
+
+autocmd BufWinEnter * match ExtraWhitespace /\s\+$/
+autocmd InsertEnter * match ExtraWhitespace /\s\+\%#\@<!$/
+autocmd InsertLeave * match ExtraWhitespace /\s\+$/
+autocmd BufWinLeave * call clearmatches()
+hi ExtraWhitespace ctermbg=lightred guibg=lightred
+
+let $FZF_DEFAULT_OPTS = '--exact --ansi --preview "batcat --color=always --style=numbers --line-range=:500 {}"'
+
+let mapleader = " "
+nnoremap <leader>e :NERDTreeToggle<cr>
+nnoremap <leader>ff :Files<cr>
+nnoremap <leader>fg :Rg<cr>
+nnoremap <leader>fb :Buffers<cr>
+nnoremap <leader><Left> :vertical resize +5<cr>
+nnoremap <leader><Right> :vertical resize -5<cr>
+nnoremap <leader><Up> :resize +5<cr>
+nnoremap <leader><Down> :resize -5<cr>
+nnoremap <leader>xf :!xmllint --format -<cr>
+nnoremap <leader>jf :!python -m json.tool<cr>
+
+
+call plug#begin()
+    Plug 'andreshazard/vim-freemarker'                                                          " ftl file support
+    Plug 'ap/vim-css-color'                                                                     " color preview
+    Plug 'instant-markdown/vim-instant-markdown', {'for': 'markdown', 'do': 'npm install'}      " markdown preview
+    Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }                                         " fzf implementation
+    Plug 'junegunn/fzf.vim'                                                                     " fzf implementation
+    Plug 'preservim/nerdtree'                                                                   " filebrowser (nerdtree)
+    Plug 'ryanoasis/vim-devicons'                                                               " icon support
+    Plug 'tiagofumo/vim-nerdtree-syntax-highlight'                                              " nerdtree enhancement
+    Plug 'tpope/vim-fugitive'                                                                   " git support
+call plug#end()
+
+let g:instant_markdown_autostart = 0
+let g:instant_markdown_allow_unsafe_content = 1
+let g:instant_markdown_allow_external_content = 1
+let g:instant_markdown_mathjax = 1
+let g:instant_markdown_mermaid = 1
+let g:instant_markdown_theme = 'dark'
+let g:instant_markdown_browser = system("$(xdg-settings get default-web-browser | cut --delimiter "." --fields 1) --new-window")
+
