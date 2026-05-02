@@ -199,6 +199,7 @@ install node() {
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
     nvm install-latest-npm
     nvm install v24
+    npm install -g neovim
 }
 
 install_audio_video() {
