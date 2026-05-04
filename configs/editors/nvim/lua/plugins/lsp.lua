@@ -89,6 +89,12 @@ return {
         filetypes = { "sh", "bash" }
       })
 
+      -- Typescript Language Server
+      vim.lsp.config("tsjsls", {
+        cmd = { "typescript-language-server", "--stdio" },
+        capabilities = capabilities,
+      })
+
       -- Yaml Language Server
       vim.lsp.config("yamlls", {
         cmd = { "yaml-language-server", "--stdio" },
@@ -117,6 +123,7 @@ return {
       vim.lsp.enable("gopls")
       vim.lsp.enable("dockerls")
       vim.lsp.enable("svelte")
+      vim.lsp.enable("tsjsls")
       vim.lsp.enable("bashls")
       vim.lsp.enable("yamlls")
 
