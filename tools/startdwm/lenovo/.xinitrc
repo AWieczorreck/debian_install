@@ -9,7 +9,7 @@ start_apps() {
     lxpolkit &
     slstatus &
     picom --vsync &
-    xcalib /usr/share/color/icc/LEN403D.icm &
+    #xcalib /usr/share/color/icc/LEN403D.icm &
 }
 
 init_ssh_gpg() {

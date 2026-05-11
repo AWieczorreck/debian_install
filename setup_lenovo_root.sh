@@ -13,7 +13,6 @@ read -p "username: " USERNAME
 # ============================================================
 
 OPT_INTEL=false
-OPT_GAMING=false
 OPT_BROWSER=false
 OPT_SECURITY=false
 OPT_POWER=false
@@ -25,7 +24,6 @@ usage() {
     echo "Verwendung: $0 [OPTIONEN]"
     echo ""
     echo "  --intel      Intel GPU/NPU Treiber & xorg Konfiguration"
-    echo "  --gaming     Gaming Pakete (vulkan, gamemode)"
     echo "  --browser    Firefox Nightly"
     echo "  --security   Smartcard / YubiKey / pass"
     echo "  --power      Power management (power-profiles-daemon)"
@@ -40,7 +38,6 @@ usage() {
 for arg in "$@"; do
     case "$arg" in
         --intel)    OPT_INTEL=true ;;
-        --gaming)   OPT_GAMING=true ;;
         --browser)  OPT_BROWSER=true ;;
         --security) OPT_SECURITY=true ;;
         --power)    OPT_POWER=true ;;
@@ -49,7 +46,6 @@ for arg in "$@"; do
         --firmware) OPT_FIRMWARE=true ;;
         --all)
             OPT_INTEL=true
-            OPT_GAMING=true
             OPT_BROWSER=true
             OPT_SECURITY=true
             OPT_POWER=true
@@ -103,8 +99,6 @@ setup_grub() {
 
     grep -q "GRUB_GFXPAYLOAD_LINUX=keep" /etc/default/grub || \
         echo "GRUB_GFXPAYLOAD_LINUX=keep" >> /etc/default/grub
-
-    update-grub
 }
 
 # ============================================================
@@ -114,12 +108,8 @@ setup_grub() {
 setup_repos() {
     log "APT repositories"
 
-    # Add i386 architecture
-    sed -i 's/^deb http/deb [arch=amd64,i386] http/g' /etc/apt/sources.list
-    dpkg --add-architecture i386
-
     # Backports
-    echo "deb [arch=amd64,i386] http://deb.debian.org/debian trixie-backports main contrib non-free non-free-firmware" \
+    echo "deb http://deb.debian.org/debian trixie-backports main contrib non-free non-free-firmware" \
         | tee /etc/apt/sources.list.d/trixie-backports.list
 
     # Mozilla repo
@@ -190,16 +180,7 @@ install_build_tools() {
         libnss3-dev \
         libopengl0 \
         libfuse2t64 \
-        fuse \
         qt5ct
-}
-
-install node() {
-    log "Install nvm, latest npm and node v24"
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
-    nvm install-latest-npm
-    nvm install v24
-    npm install -g neovim
 }
 
 install_audio_video() {
@@ -249,16 +230,12 @@ install_desktop_ui() {
         lxpolkit \
         dunst \
         acpi \
-        upower \
-        npm
+        upower
 }
 
-install_gaming() {
-    log "Gaming & GPU tools"
-    apt install -y \
-        vulkan-tools \
-        mesa-vulkan-drivers \
-        gamemode
+install_node() {
+  log "Install nvm, latest npm and node v24"
+  curl -fsSL https://raw.githubusercontent.com/mklement0/n-install/stable/bin/n-install | bash -s 24
 }
 
 install_browser() {
@@ -292,93 +269,11 @@ setup_intelgpu() {
 setup_intelnpu() {
     log "INTEL NPU configuration"
 
+    # ======================== https://github.com/intel/linux-npu-driver ======================
+    
+ 
     # ------------------------------------------------------------
-    # Schritt 1: CPU auf NPU-Unterstützung prüfen
-    # ------------------------------------------------------------
-    info "Prüfe ob NPU-fähige CPU vorhanden ist..."
-    CPU_MODEL=$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | xargs)
-    info "CPU: $CPU_MODEL"
-
-    if ! echo "$CPU_MODEL" | grep -qi "ultra\|meteor lake\|lunar lake\|arrow lake"; then
-        warn "CPU scheint kein Intel Core Ultra (Meteor Lake oder neuer) zu sein."
-        warn "NPU wird nur ab Intel Core Ultra Generation unterstützt."
-        read -rp "Trotzdem fortfahren? [j/N] " CONT
-        [[ "$CONT" =~ ^[jJyY]$ ]] || { info "Abgebrochen."; exit 0; }
-    fi
-
-    # ------------------------------------------------------------
-    # Schritt 2: Level Zero prüfen
-    # ------------------------------------------------------------
-    info "Prüfe Level Zero Installation..."
-    if dpkg -l libze1 2>/dev/null | grep -q '^ii'; then
-        ZE_VER=$(dpkg -l libze1 | awk '/^ii/{print $3}')
-        info "Level Zero (libze1) bereits installiert: $ZE_VER – OK"
-    elif dpkg -l level-zero 2>/dev/null | grep -q '^ii'; then
-        ZE_VER=$(dpkg -l level-zero | awk '/^ii/{print $3}')
-        info "Level Zero bereits installiert: $ZE_VER – OK"
-    else
-        warn "Level Zero nicht gefunden. Versuche Installation über apt..."
-        apt update && apt install -y libze1 || \
-            error "Level Zero konnte nicht installiert werden. Bitte manuell prüfen."
-    fi
-
-    # ------------------------------------------------------------
-    # Schritt 3: Alte NPU-Pakete entfernen
-    # ------------------------------------------------------------
-    info "Entferne alte NPU-Pakete (falls vorhanden)..."
-    dpkg --purge --force-remove-reinstreq \
-        intel-driver-compiler-npu \
-        intel-fw-npu \
-        intel-level-zero-npu 2>/dev/null || true
-    info "Alte Pakete entfernt (oder waren nicht vorhanden)."
-
-    # ------------------------------------------------------------
-    # Schritt 4: Abhängigkeit libtbb12 installieren
-    # ------------------------------------------------------------
-    info "Installiere Abhängigkeit libtbb12..."
-    apt update
-    apt install -y libtbb12 || error "libtbb12 konnte nicht installiert werden."
-
-    # ------------------------------------------------------------
-    # Schritt 5: NPU-Pakete herunterladen
-    # ------------------------------------------------------------
-    NPU_VERSION="1.13.0.20250131-13074932693"
-    NPU_TAG="v1.13.0"
-    BASE_URL="https://github.com/intel/linux-npu-driver/releases/download/${NPU_TAG}"
-    DEB_SUFFIX="ubuntu22.04_amd64.deb"
-
-    PACKAGES=(
-        "intel-driver-compiler-npu_${NPU_VERSION}_${DEB_SUFFIX}"
-        "intel-fw-npu_${NPU_VERSION}_${DEB_SUFFIX}"
-        "intel-level-zero-npu_${NPU_VERSION}_${DEB_SUFFIX}"
-    )
-
-    WORKDIR=$(mktemp -d)
-    info "Lade NPU-Pakete herunter nach: $WORKDIR"
-
-    for PKG in "${PACKAGES[@]}"; do
-        info "  → $PKG"
-        wget -q --no-check-certificate --show-progress \
-            "${BASE_URL}/${PKG}" \
-            -O "${WORKDIR}/${PKG}" \
-            || error "Download fehlgeschlagen: $PKG"
-    done
-
-    # ------------------------------------------------------------
-    # Schritt 6: NPU-Pakete installieren
-    # ------------------------------------------------------------
-    info "Installiere NPU-Pakete..."
-    dpkg -i "${WORKDIR}"/*.deb || {
-        warn "dpkg meldete Fehler – versuche fehlende Abhängigkeiten nachzuinstallieren..."
-        apt install -f -y || error "Abhängigkeiten konnten nicht aufgelöst werden."
-    }
-
-    # Aufräumen
-    rm -rf "$WORKDIR"
-    info "Temporäre Dateien gelöscht."
-
-    # ------------------------------------------------------------
-    # Schritt 7: udev-Regeln einrichten (automatische Berechtigungen)
+    # udev-Regeln einrichten (automatische Berechtigungen)
     # ------------------------------------------------------------
     info "Richte udev-Regeln ein für automatische Gerätezugriffe..."
     bash -c "echo 'SUBSYSTEM==\"accel\", KERNEL==\"accel*\", GROUP=\"render\", MODE=\"0660\"' \
@@ -386,9 +281,9 @@ setup_intelnpu() {
     udevadm control --reload-rules
     udevadm trigger --subsystem-match=accel
     info "udev-Regeln gesetzt."
-
+ 
     # ------------------------------------------------------------
-    # Schritt 8: Aktuellen Benutzer zur render-Gruppe hinzufügen
+    # Aktuellen Benutzer zur render-Gruppe hinzufügen
     # ------------------------------------------------------------
     REAL_USER="${SUDO_USER:-$USER}"
     if [ -n "$REAL_USER" ] && [ "$REAL_USER" != "root" ]; then
@@ -470,12 +365,6 @@ setup_snixembed() {
     rm /tmp/setup-snixembed.sh
 }
 
-setup_gamemode_group() {
-    log "Gamemode group"
-    groupadd -f gamemode
-    usermod -a -G gamemode "$USERNAME"
-}
-
 setup_systemd_services() {
     log "Systemd services"
     systemctl daemon-reload
@@ -502,9 +391,9 @@ main() {
     install_kernel
     install_xorg
     install_build_tools
-    install_node
     install_audio_video
     install_cli_tools
+    install_node
     install_desktop_ui
     setup_locale
     setup_snixembed
@@ -512,7 +401,6 @@ main() {
     # -- Optional --
     $OPT_INTEL    && setup_intel
 
-    $OPT_GAMING   && install_gaming
     $OPT_GAMING   && setup_gamemode_group
     $OPT_GAMING   && setup_systemd_services
 

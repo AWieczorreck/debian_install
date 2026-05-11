@@ -17,7 +17,6 @@ read -p "gpg email: "       EMAIL
 OPT_SUCKLESS=false
 OPT_GPG=false
 OPT_FONTS=false
-OPT_STEAM=false
 OPT_PASSFF=false
 
 usage() {
@@ -26,7 +25,6 @@ usage() {
     echo "  --suckless   dwm, st, surf, dmenu, slstatus bauen & installieren"
     echo "  --gpg        GPG / YubiKey einrichten & git config"
     echo "  --fonts      Hack Nerd Font installieren"
-    echo "  --steam      Steam installieren"
     echo "  --passff     PassFF Host App installieren"
     echo "  --all        Alles aktivieren"
     echo ""
@@ -38,13 +36,11 @@ for arg in "$@"; do
         --suckless) OPT_SUCKLESS=true ;;
         --gpg)      OPT_GPG=true ;;
         --fonts)    OPT_FONTS=true ;;
-        --steam)    OPT_STEAM=true ;;
         --passff)   OPT_PASSFF=true ;;
         --all)
             OPT_SUCKLESS=true
             OPT_GPG=true
             OPT_FONTS=true
-            OPT_STEAM=true
             OPT_PASSFF=true
             ;;
         --help|-h) usage ;;
@@ -128,8 +124,8 @@ setup_bashrc_gpg() {
 
     grep -q "GPG_TTY" ~/.bashrc || \
         printf "%s\n" \
-            'export GPG_TTY=$(tty)' \
-            'gpg-connect-agent updatestartuptty /bye > /dev/null' \
+            "export GPG_TTY=$(tty)" \
+            "gpg-connect-agent updatestartuptty /bye > /dev/null" \
             >> ~/.bashrc
 }
 
@@ -185,19 +181,6 @@ setup_fonts() {
 }
 
 # ============================================================
-# STEAM
-# ============================================================
-
-setup_steam() {
-    log "Steam"
-    curl -L -o /tmp/steam.deb \
-        https://cdn.fastly.steamstatic.com/client/installer/steam.deb
-    sudo apt install -y /tmp/steam.deb
-    rm /tmp/steam.deb
-    cp "$INSTALL_DIR/tools/gaming/update_ge-eggroll.sh" ~
-}
-
-# ============================================================
 # PASSFF
 # ============================================================
 
@@ -209,16 +192,25 @@ setup_passff() {
 }
 
 # ============================================================
+# Update grub
+# ============================================================
+
+update_grub() {
+    log "Update grub"
+    sudo update-grub
+}
+
+# ============================================================
 # MAIN
 # ============================================================
 
 main() {
+    update_grub
     setup_base
 
     $OPT_SUCKLESS && setup_suckless
     $OPT_GPG      && setup_gpg
     $OPT_FONTS    && setup_fonts
-    $OPT_STEAM    && setup_steam
     $OPT_PASSFF   && setup_passff
 
     log "User setup complete!"
