@@ -52,13 +52,13 @@ vim.cmd.highlight('ExtraWhitespace ctermbg=lightred guibg=lightred')
 
 local whitespace_group = augroup('ExtraWhitespace', { clear = true })
 
-autocmd('BufWinEnter', {
-  group = whitespace_group,
-  pattern = '*',
-  callback = function()
-    vim.fn.matchadd('ExtraWhitespace', '\\s\\+$')
-  end
-})
+-- autocmd('BufWinEnter', {
+--   group = whitespace_group,
+--   pattern = '*',
+--   callback = function()
+--     vim.fn.matchadd('ExtraWhitespace', '\\s\\+$')
+--   end
+-- })
 
 autocmd('InsertEnter', {
   group = whitespace_group,
