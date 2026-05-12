@@ -42,3 +42,44 @@ opt.showmode = false               -- don't show mode in statusline
 -- leader key
 g.mapleader = " "
 g.maplocalleader = " "
+
+-- highlighting whitespaces
+
+local augroup = vim.api.nvim_create_augroup
+local autocmd = vim.api.nvim_create_autocmd
+
+vim.cmd.highlight('ExtraWhitespace ctermbg=lightred guibg=lightred')
+
+local whitespace_group = augroup('ExtraWhitespace', { clear = true })
+
+autocmd('BufWinEnter', {
+  group = whitespace_group,
+  pattern = '*',
+  callback = function()
+    vim.fn.matchadd('ExtraWhitespace', '\\s\\+$')
+  end
+})
+
+autocmd('InsertEnter', {
+  group = whitespace_group,
+  pattern = '*',
+  callback = function()
+    vim.fn.matchadd('ExtraWhitespace', '\\s\\+\\%#\\@<!$')
+  end
+})
+
+autocmd('InsertLeave', {
+  group = whitespace_group,
+  pattern = '*',
+  callback = function()
+    vim.fn.matchadd('ExtraWhitespace', '\\s\\+$')
+  end
+})
+
+autocmd('BufWinLeave', {
+  group = whitespace_group,
+  pattern = '*',
+  callback = function()
+    vim.fn.clearmatches()
+  end
+})
