@@ -14,6 +14,13 @@ return {
 				panel = {
 					enabled = false,
 				},
+				server_opts_overrides = {
+					settings = {
+						telemetry = {
+							telemetryLevel = "off",
+						},
+					},
+				},
 			})
 		end,
 	},
@@ -62,7 +69,7 @@ return {
               <start_line>-<end_line>`.
               ]],
 						description = "Code generieren",
-                        mapping = '<leader>ccgen',
+						mapping = "<leader>ccgen",
 					},
 				},
 				window = {
@@ -112,18 +119,18 @@ return {
 			})
 
 			-- Keymaps for CopilotChat
-			vim.keymap.set("n", "<leader>cc", ":CopilotChat<CR>", { noremap = true, silent = true })
-			vim.keymap.set("n", "<leader>cq", ":CopilotChatOpen<CR>", { noremap = true, silent = true })
-			vim.keymap.set("n", "<leader>ce", ":CopilotChatExplain<CR>", { noremap = true, silent = true })
-			vim.keymap.set("n", "<leader>cr", ":CopilotChatReview<CR>", { noremap = true, silent = true })
-			vim.keymap.set("n", "<leader>cf", ":CopilotChatFix<CR>", { noremap = true, silent = true })
-			vim.keymap.set("n", "<leader>ct", ":CopilotChatTests<CR>", { noremap = true, silent = true })
-			vim.keymap.set("n", "<leader>cg", ":CopilotChatGenerateCode<CR>", { noremap = true, silent = true })
-			vim.keymap.set("v", "<leader>cc", ":CopilotChat<CR>", { noremap = true, silent = true })
-			vim.keymap.set("v", "<leader>ce", ":CopilotChatExplain<CR>", { noremap = true, silent = true })
-			vim.keymap.set("v", "<leader>cr", ":CopilotChatReview<CR>", { noremap = true, silent = true })
-			vim.keymap.set("v", "<leader>cf", ":CopilotChatFix<CR>", { noremap = true, silent = true })
-			vim.keymap.set("v", "<leader>cg", ":CopilotChatGenerateCode<CR>", { noremap = true, silent = true })
+			-- vim.keymap.set("n", "<leader>cc", ":CopilotChat<CR>", { noremap = true, silent = true })
+			-- vim.keymap.set("n", "<leader>cq", ":CopilotChatOpen<CR>", { noremap = true, silent = true })
+			-- vim.keymap.set("n", "<leader>ce", ":CopilotChatExplain<CR>", { noremap = true, silent = true })
+			-- vim.keymap.set("n", "<leader>cr", ":CopilotChatReview<CR>", { noremap = true, silent = true })
+			-- vim.keymap.set("n", "<leader>cf", ":CopilotChatFix<CR>", { noremap = true, silent = true })
+			-- vim.keymap.set("n", "<leader>ct", ":CopilotChatTests<CR>", { noremap = true, silent = true })
+			-- vim.keymap.set("n", "<leader>cg", ":CopilotChatGenerateCode<CR>", { noremap = true, silent = true })
+			-- vim.keymap.set("v", "<leader>cc", ":CopilotChat<CR>", { noremap = true, silent = true })
+			-- vim.keymap.set("v", "<leader>ce", ":CopilotChatExplain<CR>", { noremap = true, silent = true })
+			-- vim.keymap.set("v", "<leader>cr", ":CopilotChatReview<CR>", { noremap = true, silent = true })
+			-- vim.keymap.set("v", "<leader>cf", ":CopilotChatFix<CR>", { noremap = true, silent = true })
+			-- vim.keymap.set("v", "<leader>cg", ":CopilotChatGenerateCode<CR>", { noremap = true, silent = true })
 		end,
 	},
 }
