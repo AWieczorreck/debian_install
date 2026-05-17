@@ -93,6 +93,13 @@ return {
       vim.lsp.config("tsjsls", {
         cmd = { "typescript-language-server", "--stdio" },
         capabilities = capabilities,
+        filetypes = { "typescript", "javascript", "typescriptreact", "javascriptreact", "ts", "js", "tsx", "jsx" },
+        root_markers = {
+          "package.json",
+          "tsconfig.json",
+          "jsconfig.json",
+          ".git"
+        },
       })
 
       -- Yaml Language Server
