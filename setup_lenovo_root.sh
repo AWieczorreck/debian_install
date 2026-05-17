@@ -99,6 +99,9 @@ setup_grub() {
 
     grep -q "GRUB_GFXPAYLOAD_LINUX=keep" /etc/default/grub || \
         echo "GRUB_GFXPAYLOAD_LINUX=keep" >> /etc/default/grub
+
+    # disable sof, if headphone sound is not working
+    # GRUB_CMDLINE_LINUX_DEFAULT="quiet splash snd_intel_dspcfg.dsp_driver=1"
 }
 
 # ============================================================
