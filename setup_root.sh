@@ -6,7 +6,7 @@ set -euo pipefail
 # ============================================================
 
 USERNAME=""
-read -p "username: " USERNAME
+read -p "Username: " USERNAME
 
 # Validate username
 if [[ -z "$USERNAME" ]]; then

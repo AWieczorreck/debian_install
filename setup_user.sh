@@ -8,7 +8,7 @@ set -euo pipefail
 GH_USERNAME=""
 EMAIL=""
 read -p "Github username: " GH_USERNAME
-read -p "gpg email: " EMAIL
+read -p "GPG Email: " EMAIL
 
 # Validate inputs
 if [[ -z "$GH_USERNAME" || -z "$EMAIL" ]]; then
