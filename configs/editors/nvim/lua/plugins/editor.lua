@@ -18,7 +18,7 @@ return {
 				ts.setup({
 					ensure_installed = {
 						"bash",
-            "c",
+                        "c",
 						"css",
 						"dockerfile",
 						"diff",
