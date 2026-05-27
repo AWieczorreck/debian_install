@@ -70,10 +70,6 @@ return {
 		dependencies = { "nvim-tree/nvim-web-devicons" },
 		config = function()
 			require("trouble").setup({
-				-- win = {
-				--   position = "right",
-				--   size = 50,
-				-- },
 				auto_open = false,
 				auto_close = false,
 			})
