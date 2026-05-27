@@ -7,7 +7,7 @@ set -euo pipefail
 
 GH_USERNAME=""
 EMAIL=""
-read -p "github username: " GH_USERNAME
+read -p "Github username: " GH_USERNAME
 read -p "gpg email: " EMAIL
 
 # Validate inputs
